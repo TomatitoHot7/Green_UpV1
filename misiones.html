@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>Misiones GREENUP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body id="mision">
+    <div class="navbar greenup-navbar animate__animated animate__fadeInDown">
+    <div class="logo-container">
+        <img src="imagenes/4181E3B8-1C13-4848-8590-D15F80325442.png" alt="Logo del grupo" class="img">
+        <span>GREENUP</span>
+    </div>
+    <div class="nav-links">
+        <a href="index.html">Inicio</a>
+        <a href="misiones.html">Misiones</a>
+        <a href="dudas.html">Preguntas Frecuentes</a>
+        <a href="informacion.html">Información Relevante</a>
+    </div>
+    <div class="user-profile-nav">
+        <img id="user-avatar" src="imagenes/default-avatar.png" alt="Foto de Perfil" class="profile-img-nav animate__animated animate__pulse" onclick="document.getElementById('file-input').click()">
+        <span class="user-level-nav badge bg-success animate__animated animate__fadeIn">Nivel <span id="nav-level">1</span></span>
+        <input type="file" id="file-input" style="display: none;" accept="image/*">
+
+        <div class="ecobot-widget" id="ecobot-widget">
+            <div id="ecobot-bubble" class="ecobot-bubble"></div>
+            <button id="ecobot-avatar" class="ecobot-avatar" aria-label="Asistente Eco">
+                🌱
+                <span id="ecobot-badge" class="ecobot-badge"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+    
+    <div class="container mt-4 animate__animated animate__fadeIn">
+        <div class="progress-container card p-3 shadow-sm my-4 animate__animated animate__fadeInDown">
+            <h2 class="card-title">Tu Progreso 🏆</h2>
+            <p class="mb-1">Nivel Actual: <span id="currentLevel" class="fw-bold">1</span></p>
+            <p>Experiencia: <span id="currentExp" class="fw-bold">0</span> / <span id="expToNextLevel" class="fw-bold">2000</span> XP</p>
+            <div class="progress" role="progressbar" aria-label="Nivel de progreso" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="height: 30px;">
+                <div id="progressBar" class="progress-bar progress-bar-striped bg-success" style="width: 0%">
+                    <span id="progressText" class="fw-bold">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <h1 class="text-center my-4">MISIONES ECOLÓGICAS 🌱</h1>
+        
+        <h2 class="animate__animated animate__fadeInLeft">Misiones Diarias:</h2>
+
+        <div class="row g-3">
+            <div class="col-md-6 animate__animated animate__fadeInLeft">
+                <div class="card mission-card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h3 class="card-title">DÍA 1: <span class="badge bg-info text-dark mission-exp">500xp</span></h3>
+                        <p class="card-text">Lee un artículo o tip sobre reducción de huella de carbono.</p>
+                        <button type="button" class="btn btn-success complete-mission mt-auto animate__animated animate__bounceIn" data-exp="500">Completar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 animate__animated animate__fadeInRight">
+                <div class="card mission-card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h3 class="card-title">DÍA 2: <span class="badge bg-info text-dark mission-exp">850xp</span></h3>
+                        <p class="card-text">Recicla 3 botellas.</p>
+                        <button type="button" class="btn btn-success complete-mission mt-auto animate__animated animate__bounceIn" data-exp="850">Completar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 animate__animated animate__fadeInRight">
+                <div class="card mission-card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h3 class="card-title">DÍA 3: <span class="badge bg-info text-dark mission-exp">1000xp</span></h3>
+                        <p class="card-text">Reutiliza una botella o frasco para otro uso</p>
+                        <button type="button" class="btn btn-success complete-mission mt-auto animate__animated animate__bounceIn" data-exp="850">Completar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 animate__animated animate__fadeInRight">
+                <div class="card mission-card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h3 class="card-title">DÍA 4: <span class="badge bg-info text-dark mission-exp">1200xp</span></h3>
+                        <p class="card-text">Usa una bolsa reutilizable al hacer tus compras</p>
+                        <button type="button" class="btn btn-success complete-mission mt-auto animate__animated animate__bounceIn" data-exp="850">Completar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 animate__animated animate__fadeInRight">
+                <div class="card mission-card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h3 class="card-title">DÍA 5: <span class="badge bg-info text-dark mission-exp">1900xp</span></h3>
+                        <p class="card-text">Usa transporte público durante una semana</p>
+                        <button type="button" class="btn btn-success complete-mission mt-auto animate__animated animate__bounceIn" data-exp="850">Completar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 animate__animated animate__fadeInRight">
+                <div class="card mission-card shadow-sm h-100">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <h3 class="card-title">DÍA 6: <span class="badge bg-info text-dark mission-exp">2500xp</span></h3>
+                        <p class="card-text">Crea un mini huerto con hierbas o vegetales</p>
+                        <button type="button" class="btn btn-success complete-mission mt-auto animate__animated animate__bounceIn" data-exp="850">Completar</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 mt-4 animate__animated animate__zoomIn">
+                 <div class="card mission-card shadow-lg" id="mision-semanal">
+                    <div class="card-body">
+                        <h3 class="card-title text-success">DÍA 7, GRAN DESAFÍO: <span class="badge bg-warning text-dark mission-exp">3500xp</span></h3>
+                        <p>Crea un “punto verde”, haz compost y pasa un día sin plásticos de un solo uso.</p>
+                        <button type="button" class="btn btn-primary complete-mission w-100 animate__animated animate__bounceIn" data-exp="3500">Completar Misión Semanal</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="levelUpModal" tabindex="-1" aria-labelledby="levelUpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-success text-white shadow-lg border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title w-100 text-center" id="levelUpModalLabel">¡FELICIDADES, MISIONERO! 🎉</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center pt-2">
+                <p class="h1 mb-0 animate__animated animate__tada animate__infinite">
+                    <img src="/imagenes/pngwing.com.png" alt="Trofeo" style="width: 50px; height: 50px;">
+                </p>
+                <p class="h4 mt-3">Has alcanzado el Nivel 👑<span id="newLevelDisplay"></span>👑</p>
+                <p class="lead">¡Sigue con el desafío GREENUP!</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light w-100" data-bs-dismiss="modal">¡A por la siguiente misión!</button>
+            </div>
+        </div>
+    </div>
+</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
+</body>
+</html>
