@@ -1,0 +1,375 @@
+/* ============================== */
+/* --- BASE Y TIPOGRAFÍA --- */
+/* ============================== */
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f0fff0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  color: #333;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Helvetica Neue', sans-serif;
+  color: #1e7e34;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+h1 { font-size: 2.5rem; }
+h2 {
+  font-size: 2rem;
+  border-bottom: 2px solid #28a745;
+  padding-bottom: 0.3em;
+}
+
+p {
+  font-size: 1.1rem;
+  max-width: 900px;
+  margin: 0 auto 1.5rem auto;
+  text-align: justify;
+  color: #495057;
+}
+
+/* ============================== */
+/* --- NAVBAR --- */
+/* ============================== */
+
+.greenup-navbar {
+    width: 100%;
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo-container .img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    border: 2px solid white;
+}
+
+.logo-container span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    transition: color 0.3s, text-shadow 0.3s;
+    font-weight: 500;
+}
+
+.nav-links a:hover {
+    color: #ffc107;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+/* ============================== */
+/* --- PERFIL DE USUARIO Y NIVEL --- */
+/* ============================== */
+
+.user-profile-nav {
+    display: flex;
+    align-items: center;
+}
+
+.profile-img-nav {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+    cursor: pointer;
+    border: 2px solid white;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.profile-img-nav:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.user-level-nav {
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* ============================== */
+/* --- PLANETA CURVO --- */
+/* ============================== */
+
+.planet-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 40px auto;
+}
+
+.planet-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 30px rgba(40, 167, 69, 0.5);
+    transition: transform 1s;
+}
+
+.planet-image:hover {
+    transform: rotate(360deg);
+}
+
+.curved-text-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150%;
+    height: 150%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.curved-text-content {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #28a745;
+    text-shadow: 1px 1px 0 #fff;
+    position: absolute;
+    top: -30px;
+}
+
+/* ============================== */
+/* --- NOTICIAS Y MISIONES --- */
+/* ============================== */
+
+.news-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.news-img {
+    height: 200px;
+    object-fit: cover;
+}
+
+.mission-card {
+    border-left: 5px solid #1e7e34;
+    transition: background-color 0.3s;
+}
+
+.mission-card:hover {
+    background-color: #e9f7ef;
+}
+
+.mission-exp {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+/* ============================== */
+/* --- BOTÓN CTA CALCULADORA (index) --- */
+/* ============================== */
+
+.calc-cta-btn {
+    border-radius: 30px;
+    padding: 12px 30px;
+    font-weight: bold;
+}
+
+/* ============================== */
+/* --- MODAL DE AUTENTICACIÓN --- */
+/* ============================== */
+
+.modal-content {
+    border: 5px solid #28a745;
+}
+
+.btn-green-custom {
+    background-color: #28a745;
+    border-color: #28b649;
+    transition: background-color 0.3s;
+}
+.btn-green-custom:hover {
+    background-color: #000000;
+    border-color: #1e7e34;
+}
+
+.hide-input { display: none; }
+
+.modal-content.bg-success {
+    background-color: #10c23a !important;
+    border-radius: 15px;
+}
+
+.modal-header, .modal-footer {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.btn-close-white { filter: invert(1); }
+
+#progressBar { transition: width 0.5s ease-in-out; }
+
+/* ============================== */
+/* --- CALCULADORA DE HUELLA --- */
+/* ============================== */
+
+.calculator-container {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    max-width: 650px;
+    margin: 40px auto;
+}
+
+.pregunta-titulo {
+    font-weight: bold;
+    color: #1e7e34;
+    margin-bottom: 10px;
+}
+
+.resultado-emoji {
+    font-size: 3rem;
+    margin: 5px 0;
+}
+
+#resultado.huella-alta {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+#resultado.huella-media {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+}
+
+#resultado.huella-baja {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+#consejos-box {
+    background-color: #e9f7ef;
+    border: 1px solid #c3e6cb;
+}
+
+#consejos-box ul { margin-bottom: 0; }
+
+/* ============================== */
+/* --- ECO: ASISTENTE DE HUELLA --- */
+/* ============================== */
+
+.ecobot-widget {
+    position: relative;
+    margin-left: 15px;
+}
+
+.ecobot-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 2px solid #ffc107;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.3s;
+    animation: ecobot-flotar 3s ease-in-out infinite;
+}
+
+.ecobot-avatar:hover { transform: scale(1.15); }
+
+.ecobot-avatar.ecobot-alerta {
+    border-color: #dc3545;
+    animation: ecobot-flotar 3s ease-in-out infinite, ecobot-shake 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes ecobot-flotar {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes ecobot-shake {
+    from { box-shadow: 0 0 0 0 rgba(220,53,69,0.5); }
+    to { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+}
+
+.ecobot-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+.ecobot-bubble {
+    position: absolute;
+    top: 52px;
+    right: 0;
+    width: 220px;
+    background-color: #ffffff;
+    color: #1e7e34;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 12px 14px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: none;
+    cursor: pointer;
+    z-index: 1040;
+}
+
+.ecobot-bubble::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    border-width: 0 8px 8px 8px;
+    border-style: solid;
+    border-color: transparent transparent #ffffff transparent;
+}
+
+.ecobot-bubble-visible { display: block; }
