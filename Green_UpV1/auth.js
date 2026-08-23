@@ -1,39 +1,44 @@
-function getUsers() {
-    return JSON.parse(localStorage.getItem('greenup_users') || '[]');
+// ============================================================
+// GREENUP - auth.js
+// Ahora el login/registro se guarda en MySQL a través del
+// backend Flask (app.py), en vez de localStorage.
+// Se mantienen los mismos nombres de función que antes para
+// no tener que tocar el resto de los archivos HTML.
+// ============================================================
+
+async function apiPost(url, body) {
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body || {})
+    });
+    let data = {};
+    try { data = await res.json(); } catch (e) { /* respuesta vacía */ }
+    return { status: res.status, data };
 }
 
-function saveUsers(users) {
-    localStorage.setItem('greenup_users', JSON.stringify(users));
+async function getSession() {
+    try {
+        const res = await fetch('/api/session');
+        return await res.json();
+    } catch (e) {
+        return { logged_in: false };
+    }
 }
 
-function getSession() {
-    return JSON.parse(localStorage.getItem('greenup_session') || 'null');
-}
-
-function saveSession(user) {
-    localStorage.setItem('greenup_session', JSON.stringify({
-        id: user.id,
-        name: user.name,
-        email: user.email
-    }));
-}
-
-function clearSession() {
-    localStorage.removeItem('greenup_session');
-}
-
-function requireAuth() {
-    const session = getSession();
-    if (!session) {
+async function requireAuth() {
+    const sesion = await getSession();
+    if (!sesion.logged_in) {
         localStorage.setItem('greenup_redirect', window.location.href);
         window.location.href = 'login.html';
-        return false;
+        return null;
     }
-    return true;
+    return sesion;
 }
 
-function redirectIfLoggedIn() {
-    if (getSession()) window.location.href = 'index.html';
+async function redirectIfLoggedIn() {
+    const sesion = await getSession();
+    if (sesion.logged_in) window.location.href = 'index.html';
 }
 
 function switchTab(tab) {
@@ -78,7 +83,7 @@ function setReq(el, met) {
     el.querySelector('.req-icon').textContent = met ? '✔' : '○';
 }
 
-function handleLogin() {
+async function handleLogin() {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
     clearMessage('login-message');
@@ -88,18 +93,14 @@ function handleLogin() {
         return;
     }
 
-    const users = getUsers();
-    const user = users.find(u =>
-        u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
+    const { status, data } = await apiPost('/api/login', { email, password });
 
-    if (!user) {
-        showMessage('login-message', '❌ Email o contraseña incorrectos.', 'error');
+    if (status !== 200 || !data.ok) {
+        showMessage('login-message', '❌ ' + (data.message || 'Email o contraseña incorrectos.'), 'error');
         return;
     }
 
-    saveSession(user);
-    showMessage('login-message', '✅ ¡Bienvenido, ' + user.name + '! Redirigiendo...', 'success');
+    showMessage('login-message', '✅ ¡Bienvenido, ' + data.name + '! Redirigiendo...', 'success');
     setTimeout(() => {
         const redirect = localStorage.getItem('greenup_redirect') || 'index.html';
         localStorage.removeItem('greenup_redirect');
@@ -107,7 +108,7 @@ function handleLogin() {
     }, 1000);
 }
 
-function handleRegister() {
+async function handleRegister() {
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
@@ -135,46 +136,43 @@ function handleRegister() {
         return;
     }
 
-    const users = getUsers();
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-        showMessage('register-message', '⚠️ Ya existe una cuenta con ese email.', 'error');
+    const { status, data } = await apiPost('/api/register', { name, email, password });
+
+    if (status !== 200 || !data.ok) {
+        showMessage('register-message', '⚠️ ' + (data.message || 'No se pudo crear la cuenta.'), 'error');
         return;
     }
 
-    const newUser = { id: Date.now(), name, email, password };
-    users.push(newUser);
-    saveUsers(users);
-    saveSession(newUser);
-
-    showMessage('register-message', '🎉 ¡Cuenta creada! Bienvenido, ' + name + '...', 'success');
+    showMessage('register-message', '🎉 ¡Cuenta creada! Bienvenido, ' + data.name + '...', 'success');
     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
 }
 
-function logout() {
-    clearSession();
+async function logout() {
+    await apiPost('/api/logout');
     window.location.href = 'login.html';
 }
 
-function initUserNavbar() {
-    const session = getSession();
-    if (!session) return;
+async function initUserNavbar() {
+    const sesion = await getSession();
+    if (!sesion.logged_in) return;
     const userProfileNav = document.querySelector('.user-profile-nav');
     if (userProfileNav && !document.getElementById('logout-btn')) {
         const btn = document.createElement('button');
         btn.id = 'logout-btn';
         btn.className = 'btn btn-sm btn-outline-light ms-2';
         btn.style.cssText = 'font-size:0.8rem; padding:4px 10px; border-radius:20px;';
-        btn.innerHTML = '👤 ' + session.name.split(' ')[0] + ' · Salir';
+        btn.innerHTML = '👤 ' + sesion.name.split(' ')[0] + ' · Salir';
         btn.onclick = () => { if (confirm('¿Cerrar sesión?')) logout(); };
         userProfileNav.appendChild(btn);
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (document.getElementById('panel-login')) {
         redirectIfLoggedIn();
     } else if (document.querySelector('.greenup-navbar')) {
-        if (!requireAuth()) return;
+        const sesion = await requireAuth();
+        if (!sesion) return;
         initUserNavbar();
     }
 

@@ -1,12 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     // ============================
     // NIVEL, EXPERIENCIA Y AVATAR
     // ============================
+    // El nivel y la experiencia ahora viven en la base de datos, asociados
+    // a la cuenta del usuario (así el ranking global tiene sentido).
 
-    let currentExp = parseInt(localStorage.getItem('currentExp')) || 0;
-    let currentLevel = parseInt(localStorage.getItem('currentLevel')) || 1;
-    let expToNextLevel = calculateExpToNextLevel(currentLevel);
+    let currentExp = 0;
+    let currentLevel = 1;
+
+    try {
+        const res = await fetch('/api/progreso');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.ok) {
+                currentExp = data.experiencia;
+                currentLevel = data.nivel;
+            }
+        }
+    } catch (e) {
+        // Si falla (por ejemplo, todavía no hay sesión), se arranca en 0/1.
+    }
 
     const levelUpModalElement = document.getElementById('levelUpModal');
     const levelUpModal = levelUpModalElement ? new bootstrap.Modal(levelUpModalElement) : null;
@@ -41,30 +55,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addExp(expAmount) {
-        currentExp += expAmount;
-        localStorage.setItem('currentExp', currentExp);
+    updateUI();
 
-        let levelUp = false;
-
-        while (currentExp >= expToNextLevel) {
-            levelUp = true;
-            currentExp -= expToNextLevel;
-            currentLevel++;
-            expToNextLevel = calculateExpToNextLevel(currentLevel);
-        }
-
-        localStorage.setItem('currentLevel', currentLevel);
-        localStorage.setItem('currentExp', currentExp);
-
+    // El XP/nivel ahora los calcula el servidor (así nadie puede farmear
+    // mandando valores falsos desde el navegador). Esta función se usa
+    // para refrescar la barra de progreso después de completar una misión
+    // real (ver misiones.js), y muestra el modal de "subiste de nivel"
+    // cuando corresponde.
+    window.refrescarProgreso = async function (nuevoNivel, nuevaExperiencia, subioNivel) {
+        currentLevel = nuevoNivel;
+        currentExp = nuevaExperiencia;
+        expToNextLevel = calculateExpToNextLevel(currentLevel);
         updateUI();
 
-        if (levelUp && levelUpModal) {
+        if (subioNivel && levelUpModal) {
             const newLevelDisplay = document.getElementById('newLevelDisplay');
             if (newLevelDisplay) newLevelDisplay.textContent = currentLevel;
             levelUpModal.show();
         }
-    }
+    };
 
     const fileInput = document.getElementById('file-input');
     if (fileInput) {
@@ -80,19 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    document.querySelectorAll('.complete-mission').forEach(button => {
-        button.addEventListener('click', function() {
-            const exp = parseInt(this.getAttribute('data-exp'));
-            addExp(exp);
-            this.textContent = '¡Completada!';
-            this.disabled = true;
-            this.classList.remove('btn-success', 'btn-primary');
-            this.classList.add('btn-secondary');
-        });
-    });
-
-    updateUI();
 
     // ============================
     // ECO - ASISTENTE DE HUELLA DIARIA

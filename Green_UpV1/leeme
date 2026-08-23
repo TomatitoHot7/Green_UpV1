@@ -1,0 +1,101 @@
+# GREENUP - Login con Flask + MySQL
+
+## Qué cambió
+
+- **`app.py`** (nuevo): servidor Flask que sirve tu página tal cual estaba, y
+  agrega una API real de login/registro contra MySQL.
+- **`auth.js`** (modificado): en vez de guardar los usuarios en
+  `localStorage`, ahora llama a la API de Flask (`/api/login`,
+  `/api/register`, `/api/logout`, `/api/session`). Los nombres de todas las
+  funciones (`handleLogin`, `handleRegister`, `logout`, `switchTab`,
+  `togglePassword`, etc.) son los mismos que antes, así que **no hace falta
+  tocar ningún HTML**.
+- El resto de los archivos (`index.html`, `login.html`, `calculadora.html`,
+  `dudas.html`, `informacion.html`, `misiones.html`, `script.js`, `java.js`,
+  `style.css`) quedan **exactamente igual** que los que subiste.
+
+`main.py` y `juampaaa.py` (tus scripts de consola con `mysql.connector`) no
+se tocaron: son independientes de la web y no los usa `app.py`.
+
+## Cómo se crea la base de datos automáticamente
+
+`app.py` tiene una función `inicializar_base_datos()` que se ejecuta al
+arrancar el servidor y hace:
+
+```sql
+CREATE DATABASE IF NOT EXISTS greenup_db;
+CREATE TABLE IF NOT EXISTS usuarios (...);
+```
+
+Por eso no necesitás abrir MySQL Workbench para crear nada a mano: la
+primera vez que corras `python app.py` en cualquier PC que tenga MySQL
+Server instalado, la base y la tabla se crean solas.
+
+## Instalación
+
+1. Instalá las dependencias (una sola vez):
+   ```
+   pip install -r requirements.txt
+   ```
+2. Abrí `app.py` y poné tu usuario/contraseña real de MySQL en `DB_CONFIG`
+   (arriba del archivo). En tu PC de casa y en la del Workbench probablemente
+   sea distinto.
+3. Corré el servidor:
+   ```
+   python app.py
+   ```
+4. Abrí el navegador en: `http://localhost:5000`
+
+Toda la página (login, index, misiones, etc.) se sirve desde ese mismo
+servidor Flask — no hace falta abrir los `.html` directamente con doble
+clic, porque el login necesita hablar con `/api/...`.
+
+## Ranking global de usuarios (nuevo)
+
+- La tabla `usuarios` ahora tiene dos columnas más: `nivel` y `experiencia`.
+  Si ya tenías la base creada de antes, `app.py` la actualiza solo (usa
+  `ALTER TABLE ... ADD COLUMN` si detecta que faltan) — no perdés los
+  usuarios que ya tenías.
+- `script.js` ya no guarda el nivel/XP en `localStorage`: al entrar a
+  cualquier página, pide el progreso al servidor (`GET /api/progreso`), y
+  cada vez que se completa una misión lo guarda (`POST /api/progreso`).
+  Así el nivel queda ligado a la cuenta, no al navegador.
+- **`ranking.html`** (nuevo) muestra la tabla de todos los usuarios,
+  ordenada de menor a mayor nivel/XP, usando `GET /api/ranking`.
+- Se agregó el link "Ranking" al menú de navegación en todas las páginas.
+
+## 50 misiones + anti-farmeo (nuevo)
+
+- El catálogo de misiones (50 en total, en distintas categorías: movilidad,
+  energía, agua, reciclaje, alimentación, consumo consciente, naturaleza y
+  comunidad) vive **en el servidor** (`app.py`, lista `MISIONES`). El XP de
+  cada una también se define ahí — nunca se confía en lo que mande el
+  navegador.
+- Reglas anti-farmeo, todas validadas en el backend:
+  - **Cada misión se puede completar una sola vez por usuario** (tabla
+    `misiones_completadas`, con una restricción `UNIQUE` que lo impide a
+    nivel de base de datos).
+  - **Límite diario** de misiones completadas (`MAX_MISIONES_POR_DIA = 3`
+    en `app.py`, ajustable).
+  - **Evidencia obligatoria**: para completar una misión hay que escribir
+    al menos 15 caracteres contando qué hiciste (`MIN_EVIDENCIA_CARACTERES`
+    en `app.py`). No se valida automáticamente que sea verdad, pero queda
+    guardada por si alguien (vos, un profe) la quiere revisar.
+  - El nivel/XP nuevo lo calcula siempre el servidor
+    (`calcular_progreso()` en `app.py`), no el navegador.
+- Se eliminó el endpoint viejo `POST /api/progreso` (dejaba que cualquiera
+  mandara XP inventado). Ahora el único lugar donde sube el XP es
+  `POST /api/completar_mision`.
+- `misiones.html` ya no tiene las misiones escritas a mano: las carga
+  dinámicamente desde `GET /api/misiones` (`misiones.js`), y al completar
+  una abre un modal pidiendo la evidencia de texto.
+
+## Notas de seguridad (mínimas, por si las querés explicar en tu proyecto)
+
+- Las contraseñas ya no se guardan en texto plano: se guardan con
+  `generate_password_hash` (Werkzeug) y se comparan con
+  `check_password_hash`.
+- El login usa `session` de Flask (cookie firmada en el servidor), en vez de
+  guardar la sesión en `localStorage` del navegador.
+- `app.secret_key` en `app.py` es un valor de ejemplo — cambialo por
+  cualquier texto propio antes de usarlo "en serio".
