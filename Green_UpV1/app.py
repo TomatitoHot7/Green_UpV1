@@ -27,7 +27,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
-    "password": "1234",   # <-- poné acá tu contraseña real de MySQL
+    "password": "12345",   # <-- poné acá tu contraseña real de MySQL
 }
 DB_NAME = "greenup_db"
 
