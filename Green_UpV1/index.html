@@ -23,7 +23,8 @@
             <a href="ranking.html">Ranking</a>
         </div>
         <div class="user-profile-nav">
-            <img id="user-avatar" src="imagenes/default-avatar.png" alt="Foto de Perfil" class="profile-img-nav animate__animated animate__pulse" onclick="document.getElementById('file-input').click()">
+            <!-- Reemplaza esta línea en el navbar -->
+            <img id="user-avatar" src="imagenes/default-avatar.png" alt="Foto de Perfil" class="profile-img-nav animate__animated animate__pulse" onclick="window.location.href='perfil.html'" style="cursor: pointer;">
             <span class="user-level-nav badge bg-success animate__animated animate__fadeIn">Nivel <span id="nav-level">1</span></span>
             <input type="file" id="file-input" style="display: none;" accept="image/*">
 
@@ -73,7 +74,7 @@
             <button class="btn btn-sm btn-info mt-3 animate__animated animate__bounceIn" onclick="modificarTextoCurvo()">Modificar Texto</button>
         </div>
 
-        <div class="text-center my-5 animate__animated animate__fadeInUp">
+        <div id="seccion-calculadora" class="text-center my-5 animate__animated animate__fadeInUp">
             <h2>¿Querés saber tu huella de carbono? 🌍</h2>
             <p>Descubrí en pocos pasos cuánto CO₂ generás al año.</p>
             <a href="calculadora.html" class="btn btn-success btn-lg calc-cta-btn animate__animated animate__heartBeat">
@@ -126,6 +127,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="auth.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

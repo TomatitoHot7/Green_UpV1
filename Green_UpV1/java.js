@@ -1,6 +1,9 @@
 $(document).ready(function () {
- $("toast").toast("show")
-})
+    if ($("toast").length) {
+        $("toast").toast("show");
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
 
     let currentExp = parseInt(localStorage.getItem('currentExp')) || 0;
@@ -8,10 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let expToNextLevel = calculateExpToNextLevel(currentLevel);
 
     const levelUpModalElement = document.getElementById('levelUpModal');
-    const levelUpModal = new bootstrap.Modal(levelUpModalElement);
+    const levelUpModal = levelUpModalElement ? new bootstrap.Modal(levelUpModalElement) : null;
 
     const savedAvatar = localStorage.getItem('userAvatar');
-    if (savedAvatar) {
+    if (savedAvatar && document.getElementById('user-avatar')) {
         document.getElementById('user-avatar').src = savedAvatar;
     }
 
@@ -24,13 +27,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressBarElement = document.getElementById('progressBar');
         const progressTextElement = document.getElementById('progressText');
 
-        document.getElementById('currentLevel').textContent = currentLevel;
-        document.getElementById('nav-level').textContent = currentLevel;
-        document.getElementById('currentExp').textContent = currentExp;
-        document.getElementById('expToNextLevel').textContent = expToNextLevel;
+        if (document.getElementById('currentLevel')) document.getElementById('currentLevel').textContent = currentLevel;
+        if (document.getElementById('nav-level')) document.getElementById('nav-level').textContent = currentLevel;
+        if (document.getElementById('currentExp')) document.getElementById('currentExp').textContent = currentExp;
+        if (document.getElementById('expToNextLevel')) document.getElementById('expToNextLevel').textContent = expToNextLevel;
 
-        progressBarElement.style.width = `${progressPercentage}%`;
-        progressTextElement.textContent = `${Math.round(progressPercentage)}%`;
+        if (progressBarElement && progressTextElement) {
+            progressBarElement.style.width = `${progressPercentage}%`;
+            progressTextElement.textContent = `${Math.round(progressPercentage)}%`;
+        }
     }
 
     function addExp(expAmount) {
@@ -51,24 +56,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateUI();
 
-        if (levelUp) {
-            document.getElementById('newLevelDisplay').textContent = currentLevel;
+        if (levelUp && levelUpModal) {
+            const display = document.getElementById('newLevelDisplay');
+            if (display) display.textContent = currentLevel;
             levelUpModal.show(); 
         }
     }
 
-
-    document.getElementById('file-input').addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const newAvatarUrl = e.target.result;
-                document.getElementById('user-avatar').src = newAvatarUrl;
-                localStorage.setItem('userAvatar', newAvatarUrl);
-            };
-            reader.readAsDataURL(this.files[0]);
-        }
-    });
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const newAvatarUrl = e.target.result;
+                    document.getElementById('user-avatar').src = newAvatarUrl;
+                    localStorage.setItem('userAvatar', newAvatarUrl);
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
 
     document.querySelectorAll('.complete-mission').forEach(button => {
         button.addEventListener('click', function() {

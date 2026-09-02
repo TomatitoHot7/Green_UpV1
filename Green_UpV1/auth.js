@@ -1,9 +1,7 @@
 // ============================================================
 // GREENUP - auth.js
-// Ahora el login/registro se guarda en MySQL a través del
-// backend Flask (app.py), en vez de localStorage.
-// Se mantienen los mismos nombres de función que antes para
-// no tener que tocar el resto de los archivos HTML.
+// Manejo de autenticación a través de la base de datos MySQL y Flask.
+// Se mantiene la estructura original sin dependencias de localStorage.
 // ============================================================
 
 async function apiPost(url, body) {
@@ -29,8 +27,8 @@ async function getSession() {
 async function requireAuth() {
     const sesion = await getSession();
     if (!sesion.logged_in) {
-        localStorage.setItem('greenup_redirect', window.location.href);
-        window.location.href = 'login.html';
+        const paginaActual = encodeURIComponent(window.location.pathname);
+        window.location.href = 'login.html?next=' + paginaActual;
         return null;
     }
     return sesion;
@@ -102,8 +100,8 @@ async function handleLogin() {
 
     showMessage('login-message', '✅ ¡Bienvenido, ' + data.name + '! Redirigiendo...', 'success');
     setTimeout(() => {
-        const redirect = localStorage.getItem('greenup_redirect') || 'index.html';
-        localStorage.removeItem('greenup_redirect');
+        const params = new URLSearchParams(window.location.search);
+        const redirect = params.get('next') || 'index.html';
         window.location.href = redirect;
     }, 1000);
 }
@@ -113,10 +111,15 @@ async function handleRegister() {
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
     const password2 = document.getElementById('reg-password2').value;
+    const terms = document.getElementById('reg-terms');
     clearMessage('register-message');
 
     if (!name || !email || !password || !password2) {
         showMessage('register-message', '⚠️ Completá todos los campos.', 'error');
+        return;
+    }
+    if (!terms || !terms.checked) {
+        showMessage('register-message', '⚠️ Debes aceptar los Términos, Condiciones y Privacidad.', 'error');
         return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
@@ -154,25 +157,60 @@ async function logout() {
 
 async function initUserNavbar() {
     const sesion = await getSession();
-    if (!sesion.logged_in) return;
     const userProfileNav = document.querySelector('.user-profile-nav');
-    if (userProfileNav && !document.getElementById('logout-btn')) {
-        const btn = document.createElement('button');
-        btn.id = 'logout-btn';
-        btn.className = 'btn btn-sm btn-outline-light ms-2';
-        btn.style.cssText = 'font-size:0.8rem; padding:4px 10px; border-radius:20px;';
-        btn.innerHTML = '👤 ' + sesion.name.split(' ')[0] + ' · Salir';
-        btn.onclick = () => { if (confirm('¿Cerrar sesión?')) logout(); };
-        userProfileNav.appendChild(btn);
+    const calcSection = document.getElementById('seccion-calculadora');
+
+    if (!sesion.logged_in) {
+        if (userProfileNav) {
+            userProfileNav.innerHTML = `
+                <a href="login.html" class="btn btn-success fw-bold px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.9rem;">
+                    🔑 Iniciar sesión
+                </a>
+            `;
+        }
+        if (calcSection) {
+            calcSection.style.display = 'none';
+        }
+    } else {
+        if (calcSection) {
+            calcSection.style.display = 'block';
+        }
+
+        if (userProfileNav) {
+            const navLevel = document.getElementById('nav-level');
+            const imgAvatar = document.getElementById('user-avatar');
+            if (navLevel && sesion.usuario && sesion.usuario.nivel) {
+                navLevel.textContent = sesion.usuario.nivel;
+            }
+            if (imgAvatar && sesion.usuario && sesion.usuario.avatar_url) {
+                imgAvatar.src = sesion.usuario.avatar_url;
+            }
+        }
+
+        if (userProfileNav && !document.getElementById('logout-btn')) {
+            const btn = document.createElement('button');
+            btn.id = 'logout-btn';
+            btn.className = 'btn btn-sm btn-outline-light ms-2';
+            btn.style.cssText = 'font-size:0.8rem; padding:4px 10px; border-radius:20px;';
+            btn.innerHTML = '👤 ' + (sesion.name ? sesion.name.split(' ')[0] : 'Usuario') + ' · Salir';
+            btn.onclick = () => { if (confirm('¿Cerrar sesión?')) logout(); };
+            userProfileNav.appendChild(btn);
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (document.getElementById('panel-login')) {
-        redirectIfLoggedIn();
-    } else if (document.querySelector('.greenup-navbar')) {
+    const paginaActual = window.location.pathname.split('/').pop().toLowerCase();
+    const paginasProtegidas = ['misiones.html', 'ranking.html'];
+
+    if (paginasProtegidas.includes(paginaActual)) {
         const sesion = await requireAuth();
         if (!sesion) return;
+    }
+
+    if (document.getElementById('panel-login')) {
+        redirectIfLoggedIn();
+    } else {
         initUserNavbar();
     }
 

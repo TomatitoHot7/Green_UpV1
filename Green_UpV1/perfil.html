@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREENUP - Perfil de Usuario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body id="perfil-body">
+
+    <!-- Navbar -->
+    <div class="navbar greenup-navbar animate__animated animate__fadeInDown">
+        <div class="logo-container">
+            <img src="imagenes/4181E3B8-1C13-4848-8590-D15F80325442.png" alt="Logo del grupo" class="img">
+            <span>GREENUP</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">Inicio</a>
+            <a href="misiones.html">Misiones</a>
+            <a href="dudas.html">Preguntas Frecuentes</a>
+            <a href="informacion.html">Información Relevante</a>
+            <a href="ranking.html">Ranking</a>
+        </div>
+        <div class="user-profile-nav">
+            <img id="user-avatar" src="imagenes/default-avatar.png" alt="Foto de Perfil" class="profile-img-nav animate__animated animate__pulse" onclick="window.location.href='perfil.html'" style="cursor: pointer;">
+            <span class="user-level-nav badge bg-success animate__animated animate__fadeIn">Nivel <span id="nav-level">1</span></span>
+
+            <div class="ecobot-widget" id="ecobot-widget">
+                <div id="ecobot-bubble" class="ecobot-bubble"></div>
+                <button id="ecobot-avatar" class="ecobot-avatar" aria-label="Asistente Eco">
+                    🌱
+                    <span id="ecobot-badge" class="ecobot-badge"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido del Perfil -->
+    <div class="container my-4 main-content animate__animated animate__fadeIn">
+        <div class="card shadow-lg border-0 overflow-hidden profile-card">
+            
+            <!-- Banner de Fondo Personalizable -->
+            <div class="profile-banner-container" id="banner-container" style="background-image: url('imagenes/default-banner.jpg');">
+                <div class="banner-overlay"></div>
+                <button class="btn btn-light btn-sm btn-change-banner shadow" onclick="document.getElementById('banner-file-input').click()" title="Cambiar Banner de Fondo">
+                    <i class="bi bi-camera-fill me-1"></i> Cambiar Banner
+                </button>
+                <input type="file" id="banner-file-input" style="display: none;" accept="image/*">
+            </div>
+
+            <div class="card-body position-relative pt-0 px-4 pb-4">
+                
+                <!-- Encabezado del Perfil (Avatar + Nombre + Botón Editar) -->
+                <div class="d-flex flex-column flex-md-row align-items-center align-items-md-end justify-content-between profile-header-wrapper mb-4">
+                    
+                    <div class="d-flex flex-column flex-md-row align-items-center text-center text-md-start">
+                        <!-- Foto de Perfil con opción de cambio -->
+                        <div class="profile-avatar-wrapper position-relative me-md-4 mb-3 mb-md-0">
+                            <img id="profile-avatar-img" src="imagenes/default-avatar.png" alt="Foto de Perfil Grande" class="profile-avatar-lg shadow">
+                            <button class="btn btn-success btn-sm btn-change-avatar rounded-circle shadow" onclick="document.getElementById('avatar-file-input').click()" title="Cambiar Foto de Perfil">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                            <input type="file" id="avatar-file-input" style="display: none;" accept="image/*">
+                        </div>
+
+                        <!-- Nombre e Información Básica -->
+                        <div>
+                            <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
+                                <h2 id="display-nombre" class="fw-bold mb-0">Cargando usuario...</h2>
+                                <!-- Icono de lápiz para activar la edición -->
+                                <button id="btn-toggle-edit" class="btn btn-outline-success btn-sm btn-icon-pencil rounded-circle ms-2" title="Editar Perfil">
+                                    <i class="bi bi-pencil-square fs-5"></i>
+                                </button>
+                            </div>
+                            <p id="display-email" class="text-muted mb-1">usuario@greenup.org</p>
+                            <span class="badge bg-success fs-6"><i class="bi bi-trophy-fill me-1"></i>Nivel <span id="profile-level">1</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas Rápidas -->
+                    <div class="d-flex gap-3 mt-3 mt-md-0 text-center">
+                        <div class="stat-box p-2 px-3 bg-light rounded shadow-sm">
+                            <div class="text-muted small">Experiencia</div>
+                            <div class="fw-bold text-success fs-5"><span id="profile-exp">0</span> XP</div>
+                        </div>
+                        <div class="stat-box p-2 px-3 bg-light rounded shadow-sm">
+                            <div class="text-muted small">Misiones</div>
+                            <div class="fw-bold text-success fs-5"><span id="profile-missions-count">0</span></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="profile-alert" class="alert alert-dismissible fade show d-none" role="alert"></div>
+
+                <!-- VISTA LECTURA / INFORMACIÓN DETALLADA -->
+                <div id="view-mode" class="animate__animated animate__fadeIn">
+                    <div class="card bg-light border-0 p-3 mb-3">
+                        <h5 class="fw-bold text-success mb-2"><i class="bi bi-person-badge me-2"></i>Sobre mí</h5>
+                        <p id="display-bio" class="text-secondary mb-0">¡Hola! Soy parte de la comunidad GREENUP reduciendo la huella de carbono.</p>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-light border-0 p-3">
+                                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-geo-alt-fill text-success me-2"></i>Ubicación</h6>
+                                <p id="display-ubicacion" class="text-muted mb-0">No especificada</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light border-0 p-3">
+                                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-calendar-event-fill text-success me-2"></i>Miembro desde</h6>
+                                <p id="display-fecha-registro" class="text-muted mb-0">2024</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VISTA EDICIÓN (Se activa al pulsar el botón Lápiz) -->
+                <div id="edit-mode" class="d-none animate__animated animate__fadeIn">
+                    <form id="profile-form" class="card p-4 border-success shadow-sm">
+                        <h4 class="fw-bold text-success mb-3"><i class="bi bi-pencil-square me-2"></i>Editar Datos del Usuario</h4>
+                        
+                        <div class="mb-3">
+                            <label for="input-nombre" class="form-label fw-semibold">Nombre de Usuario</label>
+                            <input type="text" id="input-nombre" class="form-control" required placeholder="Tu nombre o alias">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="input-ubicacion" class="form-label fw-semibold">Ubicación</label>
+                            <input type="text" id="input-ubicacion" class="form-control" placeholder="Ej: Buenos Aires, Argentina">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="input-bio" class="form-label fw-semibold">Biografía / Presentación</label>
+                            <textarea id="input-bio" class="form-control" rows="3" placeholder="Contale a la comunidad qué haces por el planeta..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" id="btn-cancel-edit" class="btn btn-outline-secondary">Cancelar</button>
+                            <button type="submit" id="btn-save-profile" class="btn btn-success fw-bold">
+                                <i class="bi bi-check-circle-fill me-1"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+    <script src="perfil.js"></script>
+</body>
+</html>
