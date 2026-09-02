@@ -1,7 +1,7 @@
 """
 GREENUP - Backend Flask + MySQL
 --------------------------------
-Servidor actualizado con soporte para gestión de perfil, huella de carbono y misiones.
+Servidor actualizado con soporte para gestión de perfil, huella de carbono, misiones y sistema de amigos.
 """
 
 import os
@@ -170,6 +170,20 @@ def inicializar_base_datos():
         )
     """)
     conexion.commit()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS amigos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NOT NULL,
+            amigo_id INT NOT NULL,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY unico_amigo (usuario_id, amigo_id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+            FOREIGN KEY (amigo_id) REFERENCES usuarios(id) ON DELETE CASCADE
+        )
+    """)
+    conexion.commit()
+
     cursor.close()
     conexion.close()
     print("Base de datos y tablas de GREENUP verificadas correctamente.")
@@ -546,6 +560,137 @@ def api_ranking():
         cursor.close()
         conexion.close()
         return jsonify({"ok": True, "ranking": filas})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+# ============================================================
+# API DE AMIGOS
+# ============================================================
+@app.route("/api/amigos", methods=["GET"])
+def api_obtener_amigos():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor(dictionary=True)
+        query = """
+            SELECT u.id, u.nombre, u.nivel, u.experiencia, u.huella, u.avatar_url, u.ubicacion
+            FROM amigos a
+            JOIN usuarios u ON a.amigo_id = u.id
+            WHERE a.usuario_id = %s
+        """
+        cursor.execute(query, (session["user_id"],))
+        amigos = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "amigos": amigos})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/amigos/buscar", methods=["GET"])
+def api_buscar_usuarios():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"ok": True, "resultados": []})
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor(dictionary=True)
+        query = """
+            SELECT u.id, u.nombre, u.nivel, u.avatar_url,
+                   (SELECT COUNT(*) FROM amigos a WHERE a.usuario_id = %s AND a.amigo_id = u.id) AS es_amigo
+            FROM usuarios u
+            WHERE (u.nombre LIKE %s OR u.email LIKE %s) AND u.id != %s
+            LIMIT 10
+        """
+        search_term = f"%{q}%"
+        cursor.execute(query, (session["user_id"], search_term, search_term, session["user_id"]))
+        resultados = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "resultados": resultados})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/amigos/agregar", methods=["POST"])
+def api_agregar_amigo():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    amigo_id = data.get("amigo_id")
+
+    if not amigo_id or amigo_id == session["user_id"]:
+        return jsonify({"ok": False, "message": "ID de usuario inválido."}), 400
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute("INSERT IGNORE INTO amigos (usuario_id, amigo_id) VALUES (%s, %s)", (session["user_id"], amigo_id))
+        cursor.execute("INSERT IGNORE INTO amigos (usuario_id, amigo_id) VALUES (%s, %s)", (amigo_id, session["user_id"]))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "message": "Amigo agregado correctamente."})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/amigos/eliminar", methods=["POST"])
+def api_eliminar_amigo():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    amigo_id = data.get("amigo_id")
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute("DELETE FROM amigos WHERE (usuario_id = %s AND amigo_id = %s) OR (usuario_id = %s AND amigo_id = %s)",
+                       (session["user_id"], amigo_id, amigo_id, session["user_id"]))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "message": "Amigo eliminado."})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/perfil/<int:user_id>", methods=["GET"])
+def api_ver_perfil_publico(user_id):
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT id, nombre, bio, ubicacion, avatar_url, banner_url, nivel, experiencia, huella, fecha_registro "
+            "FROM usuarios WHERE id = %s",
+            (user_id,)
+        )
+        u = cursor.fetchone()
+
+        if not u:
+            cursor.close()
+            conexion.close()
+            return jsonify({"ok": False, "message": "Usuario no encontrado"}), 404
+
+        cursor.execute(
+            "SELECT COUNT(*) AS total FROM misiones_completadas WHERE usuario_id = %s",
+            (user_id,)
+        )
+        u["misiones_completadas"] = cursor.fetchone()["total"]
+
+        if u["fecha_registro"]:
+            u["fecha_registro"] = u["fecha_registro"].strftime("%Y-%m-%d")
+
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "usuario": u})
     except Error as err:
         return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
 

@@ -40,7 +40,7 @@
 
     <!-- Contenido del Perfil -->
     <div class="container my-4 main-content animate__animated animate__fadeIn">
-        <div class="card shadow-lg border-0 overflow-hidden profile-card">
+        <div class="card shadow-lg border-0 overflow-hidden profile-card mb-4">
             
             <!-- Banner de Fondo Personalizable -->
             <div class="profile-banner-container" id="banner-container" style="background-image: url('imagenes/default-banner.jpg');">
@@ -70,7 +70,6 @@
                         <div>
                             <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
                                 <h2 id="display-nombre" class="fw-bold mb-0">Cargando usuario...</h2>
-                                <!-- Icono de lápiz para activar la edición -->
                                 <button id="btn-toggle-edit" class="btn btn-outline-success btn-sm btn-icon-pencil rounded-circle ms-2" title="Editar Perfil">
                                     <i class="bi bi-pencil-square fs-5"></i>
                                 </button>
@@ -119,7 +118,7 @@
                     </div>
                 </div>
 
-                <!-- VISTA EDICIÓN (Se activa al pulsar el botón Lápiz) -->
+                <!-- VISTA EDICIÓN -->
                 <div id="edit-mode" class="d-none animate__animated animate__fadeIn">
                     <form id="profile-form" class="card p-4 border-success shadow-sm">
                         <h4 class="fw-bold text-success mb-3"><i class="bi bi-pencil-square me-2"></i>Editar Datos del Usuario</h4>
@@ -148,6 +147,77 @@
                     </form>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- SECCIÓN DE AMIGOS -->
+        <div class="card shadow-lg border-0 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-success mb-0"><i class="bi bi-people-fill me-2"></i>Mis Amigos Eco</h4>
+                <button class="btn btn-success btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalBuscarAmigos">
+                    <i class="bi bi-person-plus-fill me-1"></i> Buscar y Agregar Amigos
+                </button>
+            </div>
+            <div id="amigos-lista" class="row g-3">
+                <p class="text-muted">Cargando amigos...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BUSCAR AMIGOS -->
+    <div class="modal fade" id="modalBuscarAmigos" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-search me-2"></i>Buscar Usuarios</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" id="input-buscar-amigo" class="form-control" placeholder="Nombre o email de usuario...">
+                        <button class="btn btn-success" id="btn-ejecutar-busqueda"><i class="bi bi-search"></i> Buscar</button>
+                    </div>
+                    <div id="resultados-busqueda" class="list-group">
+                        <p class="text-muted text-center my-3">Escribí un nombre o email para iniciar la búsqueda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VER PERFIL PÚBLICO DE AMIGO -->
+    <div class="modal fade" id="modalPerfilPublico" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content overflow-hidden border-0">
+                <div id="public-banner" class="p-4 text-white text-center position-relative" style="background-color: #2e7d32; background-size: cover; background-position: center;">
+                    <img id="public-avatar" src="imagenes/default-avatar.png" class="rounded-circle shadow border border-3 border-white mb-2" style="width: 90px; height: 90px; object-fit: cover;">
+                    <h4 id="public-nombre" class="fw-bold mb-0">---</h4>
+                    <span id="public-nivel" class="badge bg-warning text-dark mt-1">Nivel 1</span>
+                </div>
+                <div class="modal-body p-4">
+                    <p id="public-bio" class="text-muted fst-italic text-center mb-3">"---"</p>
+                    <ul class="list-group list-group-flush small mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-geo-alt-fill text-success me-2"></i>Ubicación</span>
+                            <strong id="public-ubicacion">--</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-trophy-fill text-warning me-2"></i>Experiencia</span>
+                            <strong id="public-exp">0 XP</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-check-circle-fill text-success me-2"></i>Misiones Completadas</span>
+                            <strong id="public-misiones">0</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-calendar-event me-2 text-primary"></i>Miembro desde</span>
+                            <strong id="public-registro">--</strong>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>

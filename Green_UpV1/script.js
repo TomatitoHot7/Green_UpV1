@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     } catch (e) {
-        // Si falla la conexión, se mantiene el valor por defecto
+        // Se mantiene el valor por defecto en caso de desconexión
     }
 
     const levelUpModalElement = document.getElementById('levelUpModal');
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateUI();
 
-    // Función para refrescar el progreso desde la base de datos tras completar misiones
+    // Refrescar el progreso desde la base de datos tras completar misiones
     window.refrescarProgreso = async function (nuevoNivel, nuevaExperiencia, subioNivel) {
         currentLevel = nuevoNivel;
         currentExp = nuevaExperiencia;
@@ -235,7 +235,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nivel = 'baja';
             }
 
-            // Guardar el resultado en MySQL a través del Backend
             try {
                 await fetch('/api/huella', {
                     method: 'POST',
@@ -246,7 +245,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.error("Error al guardar la huella en el servidor:", err);
             }
 
-            // Consejos según respuestas más débiles
             listaConsejos.innerHTML = '';
             const respuestas = { movilidad, energia, reciclaje };
 
@@ -272,14 +270,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             consejosBox.style.display = 'none';
             resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // Actualizar racha y fecha de chequeo diario
             const hoy = getHoy();
             const ayer = getAyer();
             const lastCheck = localStorage.getItem('lastCheckDate');
             let streak = parseInt(localStorage.getItem('streak')) || 0;
 
             if (lastCheck === hoy) {
-                // Ya había calculado hoy
+                // Sin cambios si es el mismo día
             } else if (lastCheck === ayer) {
                 streak += 1;
             } else {
@@ -299,5 +296,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     }
-
 });
