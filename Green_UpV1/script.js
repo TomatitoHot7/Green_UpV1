@@ -1,37 +1,39 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
     // ============================
-    // NIVEL, EXPERIENCIA Y AVATAR
+    // NIVEL, EXPERIENCIA Y AVATAR DESDE BASE DE DATOS
     // ============================
-    // El nivel y la experiencia ahora viven en la base de datos, asociados
-    // a la cuenta del usuario (así el ranking global tiene sentido).
-
     let currentExp = 0;
     let currentLevel = 1;
+    let expToNextLevel = calculateExpToNextLevel(currentLevel);
+
+    function calculateExpToNextLevel(level) {
+        return 2000 * level;
+    }
 
     try {
-        const res = await fetch('/api/progreso');
+        const res = await fetch('/api/session');
         if (res.ok) {
             const data = await res.json();
-            if (data.ok) {
-                currentExp = data.experiencia;
-                currentLevel = data.nivel;
+            if (data.logged_in && data.usuario) {
+                currentExp = data.usuario.experiencia || 0;
+                currentLevel = data.usuario.nivel || 1;
+                expToNextLevel = calculateExpToNextLevel(currentLevel);
+                if (data.usuario.avatar_url && document.getElementById('user-avatar')) {
+                    document.getElementById('user-avatar').src = data.usuario.avatar_url;
+                }
             }
         }
     } catch (e) {
-        // Si falla (por ejemplo, todavía no hay sesión), se arranca en 0/1.
+        // Se mantiene el valor por defecto en caso de desconexión
     }
 
     const levelUpModalElement = document.getElementById('levelUpModal');
     const levelUpModal = levelUpModalElement ? new bootstrap.Modal(levelUpModalElement) : null;
 
     const savedAvatar = localStorage.getItem('userAvatar');
-    if (savedAvatar && document.getElementById('user-avatar')) {
+    if (savedAvatar && document.getElementById('user-avatar') && !document.getElementById('user-avatar').src.includes('/uploads/')) {
         document.getElementById('user-avatar').src = savedAvatar;
-    }
-
-    function calculateExpToNextLevel(level) {
-        return 2000 * level;
     }
 
     function updateUI() {
@@ -49,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const progressBarElement = document.getElementById('progressBar');
         const progressTextElement = document.getElementById('progressText');
         if (progressBarElement && progressTextElement) {
-            const progressPercentage = (currentExp / expToNextLevel) * 100;
+            const progressPercentage = Math.min(100, (currentExp / expToNextLevel) * 100);
             progressBarElement.style.width = `${progressPercentage}%`;
             progressTextElement.textContent = `${Math.round(progressPercentage)}%`;
         }
@@ -57,11 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateUI();
 
-    // El XP/nivel ahora los calcula el servidor (así nadie puede farmear
-    // mandando valores falsos desde el navegador). Esta función se usa
-    // para refrescar la barra de progreso después de completar una misión
-    // real (ver misiones.js), y muestra el modal de "subiste de nivel"
-    // cuando corresponde.
+    // Refrescar el progreso desde la base de datos tras completar misiones
     window.refrescarProgreso = async function (nuevoNivel, nuevaExperiencia, subioNivel) {
         currentLevel = nuevoNivel;
         currentExp = nuevaExperiencia;
@@ -127,20 +125,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const mensajesEco = {
         nuevo: [
-            '¡Hola! Soy Eco 🌱 ¿Ya sabés cuál es tu huella de carbono?',
-            '¡Hola, soy Eco! Hacé tu primer chequeo y conocé tu impacto 🌍'
+            '¡Hola! Soy Eco 🌱 ¿Ya sabés cuál es tu huella de carbono? Toca aquí para calcularla 🌍',
+            '¡Hola, soy Eco! Hacé tu primer chequeo y conocé tu impacto 🌍 (Clic aquí)'
         ],
         hecho: (streak) => [
             `¡Genial! Ya hiciste tu chequeo de hoy 🎉 Racha: ${streak} día${streak === 1 ? '' : 's'}`,
             `¡Vas muy bien! 💪 Llevás ${streak} día${streak === 1 ? '' : 's'} cuidando el planeta`
         ],
         'pendiente-racha': (streak) => [
-            `¡No rompas tu racha de ${streak} día${streak === 1 ? '' : 's'}! Hacé tu chequeo de hoy 🔥`,
+            `¡No rompas tu racha de ${streak} día${streak === 1 ? '' : 's'}! Toca aquí para calcular tu huella 🔥`,
             `¡Te espero! Llevás ${streak} día${streak === 1 ? '' : 's'} seguidos, no lo dejes pasar 🌎`
         ],
         'racha-perdida': [
-            '¡Te extrañé! 😢 Perdimos la racha, pero podemos empezar de nuevo 🌱',
-            'Hace tiempo no chequeás tu huella... ¡Volvamos a cuidar el planeta juntos! 🌍'
+            '¡Te extrañé! 😢 Perdimos la racha, toca aquí para calcular tu huella de nuevo 🌱',
+            'Hace tiempo no chequeás tu huella... ¡Toca aquí para medir tu impacto! 🌍'
         ]
     };
 
@@ -208,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             reciclaje: 'Separá tus residuos en orgánicos, plásticos, papel y vidrio. ¡Reciclar siempre que puedas hace una gran diferencia!'
         };
 
-        form.addEventListener('submit', function (e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const movilidad = parseInt(document.querySelector('input[name="movilidad"]:checked').value);
@@ -237,7 +235,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 nivel = 'baja';
             }
 
-            // Consejos según respuestas más débiles
+            try {
+                await fetch('/api/huella', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ total: total })
+                });
+            } catch (err) {
+                console.error("Error al guardar la huella en el servidor:", err);
+            }
+
             listaConsejos.innerHTML = '';
             const respuestas = { movilidad, energia, reciclaje };
 
@@ -263,14 +270,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             consejosBox.style.display = 'none';
             resultadoDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            // Actualizar racha y fecha de chequeo diario
             const hoy = getHoy();
             const ayer = getAyer();
             const lastCheck = localStorage.getItem('lastCheckDate');
             let streak = parseInt(localStorage.getItem('streak')) || 0;
 
             if (lastCheck === hoy) {
-                // ya había calculado hoy, no se incrementa otra vez
+                // Sin cambios si es el mismo día
             } else if (lastCheck === ayer) {
                 streak += 1;
             } else {
@@ -290,5 +296,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
     }
-
 });

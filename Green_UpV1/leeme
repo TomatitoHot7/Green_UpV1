@@ -5,7 +5,7 @@
 - **`app.py`** (nuevo): servidor Flask que sirve tu página tal cual estaba, y
   agrega una API real de login/registro contra MySQL.
 - **`auth.js`** (modificado): en vez de guardar los usuarios en
-  `localStorage`, ahora llama a la API de Flask (`/api/login`,
+  ``, ahora llama a la API de Flask (`/api/login`,
   `/api/register`, `/api/logout`, `/api/session`). Los nombres de todas las
   funciones (`handleLogin`, `handleRegister`, `logout`, `switchTab`,
   `togglePassword`, etc.) son los mismos que antes, así que **no hace falta
@@ -56,7 +56,7 @@ clic, porque el login necesita hablar con `/api/...`.
   Si ya tenías la base creada de antes, `app.py` la actualiza solo (usa
   `ALTER TABLE ... ADD COLUMN` si detecta que faltan) — no perdés los
   usuarios que ya tenías.
-- `script.js` ya no guarda el nivel/XP en `localStorage`: al entrar a
+- `script.js` ya no guarda el nivel/XP en ``: al entrar a
   cualquier página, pide el progreso al servidor (`GET /api/progreso`), y
   cada vez que se completa una misión lo guarda (`POST /api/progreso`).
   Así el nivel queda ligado a la cuenta, no al navegador.
@@ -96,6 +96,6 @@ clic, porque el login necesita hablar con `/api/...`.
   `generate_password_hash` (Werkzeug) y se comparan con
   `check_password_hash`.
 - El login usa `session` de Flask (cookie firmada en el servidor), en vez de
-  guardar la sesión en `localStorage` del navegador.
+  guardar la sesión en `` del navegador.
 - `app.secret_key` en `app.py` es un valor de ejemplo — cambialo por
   cualquier texto propio antes de usarlo "en serio".

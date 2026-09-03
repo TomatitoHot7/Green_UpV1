@@ -1,17 +1,7 @@
 """
 GREENUP - Backend Flask + MySQL
 --------------------------------
-Este archivo reemplaza el sistema de login basado en localStorage
-(auth.js original) por un login real contra una base de datos MySQL.
-
-IMPORTANTE PARA VOS (desarrollo en 2 PCs):
-- No hace falta crear la base de datos a mano en MySQL Workbench.
-- Al arrancar (`python app.py`), la función inicializar_base_datos()
-  ejecuta "CREATE DATABASE IF NOT EXISTS" y "CREATE TABLE IF NOT EXISTS",
-  así que en la PC que sí tiene Workbench, la base y la tabla se crean
-  solas la primera vez que corras el server.
-- Solo necesitás tener MySQL Server instalado y correcto usuario/contraseña
-  en DB_CONFIG más abajo.
+Servidor actualizado con soporte para gestión de perfil, huella de carbono, misiones y sistema de amigos.
 """
 
 import os
@@ -19,31 +9,32 @@ from flask import Flask, request, jsonify, session, send_from_directory
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 # ============================================================
-# CONFIGURACIÓN DE LA BASE DE DATOS
+# CONFIGURACIÓN DE LA BASE DE DATOS Y CARPETAS
 # ============================================================
-# Cambiá estos datos según el usuario/contraseña de MySQL de cada PC.
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
-    "password": "12345",   # <-- poné acá tu contraseña real de MySQL
+    "password": "12345",   # <-- Poné tu contraseña real de MySQL
 }
 DB_NAME = "greenup_db"
 
-# Cuántas misiones como máximo se pueden completar por día (anti-farmeo).
 MAX_MISIONES_POR_DIA = 3
-
-# Longitud mínima del texto de evidencia que hay que escribir al completar
-# una misión (no lo "valida" nadie automáticamente, pero exigirlo evita el
-# click-y-listo, y queda guardado por si un profe lo quiere revisar).
 MIN_EVIDENCIA_CARACTERES = 15
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+app = Flask(__name__, static_folder=None)
+app.secret_key = "clave-secreta-greenup-2024"
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 # ============================================================
-# CATÁLOGO DE MISIONES (fuente única de verdad: vive en el servidor)
+# CATÁLOGO DE MISIONES
 # ============================================================
-# El XP de cada misión sale de ACÁ, nunca de lo que mande el navegador.
-# Así nadie puede "farmear" mandando XP inventado desde la consola.
 MISIONES = [
     {"id": 1, "categoria": "Movilidad", "descripcion": "Caminá o andá en bici en vez de auto/moto por un día.", "xp": 600},
     {"id": 2, "categoria": "Movilidad", "descripcion": "Usá transporte público en vez de auto durante una semana.", "xp": 1200},
@@ -105,10 +96,7 @@ MISIONES = [
 
 MISIONES_POR_ID = {m["id"]: m for m in MISIONES}
 
-
 def calcular_progreso(nivel_actual, experiencia_actual, xp_ganado):
-    """Aplica la misma fórmula de subida de nivel que usa el frontend
-    (2000 * nivel para pasar al siguiente), pero acá del lado del servidor."""
     experiencia = experiencia_actual + xp_ganado
     nivel = nivel_actual
     subio_nivel = False
@@ -120,24 +108,13 @@ def calcular_progreso(nivel_actual, experiencia_actual, xp_ganado):
         necesaria = 2000 * nivel
     return nivel, experiencia, subio_nivel
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-app = Flask(__name__, static_folder=None)
-app.secret_key = "cambia-esta-clave-por-una-propia-y-secreta"  # TODO: cambiar
-
-
 def get_connection(with_db=True):
-    """Abre una conexión nueva a MySQL. Si with_db=False, no selecciona
-    ninguna base (se usa solo para poder crearla la primera vez)."""
     config = DB_CONFIG.copy()
     if with_db:
         config["database"] = DB_NAME
     return mysql.connector.connect(**config)
 
-
 def inicializar_base_datos():
-    """Crea la base de datos y la tabla 'usuarios' si todavía no existen."""
-    # 1) Crear la base de datos si no existe
     conexion = get_connection(with_db=False)
     cursor = conexion.cursor()
     cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}")
@@ -145,7 +122,6 @@ def inicializar_base_datos():
     cursor.close()
     conexion.close()
 
-    # 2) Crear la tabla de usuarios si no existe
     conexion = get_connection(with_db=True)
     cursor = conexion.cursor()
     cursor.execute("""
@@ -156,30 +132,32 @@ def inicializar_base_datos():
             password_hash VARCHAR(255) NOT NULL,
             nivel INT NOT NULL DEFAULT 1,
             experiencia INT NOT NULL DEFAULT 0,
+            huella FLOAT NULL,
+            bio TEXT NULL,
+            ubicacion VARCHAR(150) NULL,
+            avatar_url VARCHAR(255) NULL,
+            banner_url VARCHAR(255) NULL,
             fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conexion.commit()
 
-    # 3) Si la tabla ya existía de antes (sin nivel/experiencia), se agregan ahora.
-    #    Esto permite actualizar el proyecto sin perder los usuarios ya creados.
-    for columna, definicion in [
+    # Actualizar columnas dinámicamente si la tabla ya existía
+    columnas = [
         ("nivel", "INT NOT NULL DEFAULT 1"),
         ("experiencia", "INT NOT NULL DEFAULT 0"),
-    ]:
+        ("huella", "FLOAT NULL"),
+        ("bio", "TEXT NULL"),
+        ("ubicacion", "VARCHAR(150) NULL"),
+        ("avatar_url", "VARCHAR(255) NULL"),
+        ("banner_url", "VARCHAR(255) NULL"),
+    ]
+    for columna, definicion in columnas:
         cursor.execute("SHOW COLUMNS FROM usuarios LIKE %s", (columna,))
         if not cursor.fetchone():
             cursor.execute(f"ALTER TABLE usuarios ADD COLUMN {columna} {definicion}")
             conexion.commit()
 
-    cursor.close()
-    conexion.close()
-    print(f"Base de datos '{DB_NAME}' y tabla 'usuarios' listas.")
-
-    # 4) Tabla que registra qué misiones completó cada usuario (con su
-    #    evidencia de texto), y evita que se pueda repetir la misma misión.
-    conexion = get_connection(with_db=True)
-    cursor = conexion.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS misiones_completadas (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -192,29 +170,42 @@ def inicializar_base_datos():
         )
     """)
     conexion.commit()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS amigos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            usuario_id INT NOT NULL,
+            amigo_id INT NOT NULL,
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY unico_amigo (usuario_id, amigo_id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+            FOREIGN KEY (amigo_id) REFERENCES usuarios(id) ON DELETE CASCADE
+        )
+    """)
+    conexion.commit()
+
     cursor.close()
     conexion.close()
-    print("Tabla 'misiones_completadas' lista.")
-
+    print("Base de datos y tablas de GREENUP verificadas correctamente.")
 
 # ============================================================
-# RUTAS PARA SERVIR LA PÁGINA WEB (los mismos archivos de siempre)
+# RUTAS DE ARCHIVOS ESTÁTICOS
 # ============================================================
-
 @app.route("/")
 def home():
     return send_from_directory(BASE_DIR, "index.html")
 
+@app.route("/uploads/<filename>")
+def serve_uploads(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route("/<path:filename>")
 def archivos_estaticos(filename):
     return send_from_directory(BASE_DIR, filename)
 
-
 # ============================================================
 # API DE AUTENTICACIÓN
 # ============================================================
-
 @app.route("/api/register", methods=["POST"])
 def api_register():
     data = request.get_json(silent=True) or {}
@@ -224,16 +215,10 @@ def api_register():
 
     if not nombre or not email or not password:
         return jsonify({"ok": False, "message": "Completá todos los campos."}), 400
-    if len(password) < 6 or not any(c.isalpha() for c in password):
-        return jsonify({
-            "ok": False,
-            "message": "La contraseña debe tener al menos 6 caracteres y una letra."
-        }), 400
 
     try:
         conexion = get_connection()
         cursor = conexion.cursor()
-
         cursor.execute("SELECT id FROM usuarios WHERE email = %s", (email,))
         if cursor.fetchone():
             cursor.close()
@@ -253,10 +238,8 @@ def api_register():
         session["user_id"] = user_id
         session["user_name"] = nombre
         return jsonify({"ok": True, "name": nombre})
-
     except Error as err:
         return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
-
 
 @app.route("/api/login", methods=["POST"])
 def api_login():
@@ -264,16 +247,10 @@ def api_login():
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
 
-    if not email or not password:
-        return jsonify({"ok": False, "message": "Completá todos los campos."}), 400
-
     try:
         conexion = get_connection()
         cursor = conexion.cursor(dictionary=True)
-        cursor.execute(
-            "SELECT id, nombre, password_hash FROM usuarios WHERE email = %s",
-            (email,)
-        )
+        cursor.execute("SELECT id, nombre, password_hash FROM usuarios WHERE email = %s", (email,))
         usuario = cursor.fetchone()
         cursor.close()
         conexion.close()
@@ -284,31 +261,60 @@ def api_login():
         session["user_id"] = usuario["id"]
         session["user_name"] = usuario["nombre"]
         return jsonify({"ok": True, "name": usuario["nombre"]})
-
     except Error as err:
         return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
-
 
 @app.route("/api/logout", methods=["POST"])
 def api_logout():
     session.clear()
     return jsonify({"ok": True})
 
-
 @app.route("/api/session", methods=["GET"])
 def api_session():
     if "user_id" in session:
-        return jsonify({"logged_in": True, "name": session.get("user_name")})
+        try:
+            conexion = get_connection()
+            cursor = conexion.cursor(dictionary=True)
+            cursor.execute("SELECT nombre, nivel, experiencia, huella, avatar_url FROM usuarios WHERE id = %s", (session["user_id"],))
+            usuario = cursor.fetchone()
+            cursor.close()
+            conexion.close()
+            return jsonify({"logged_in": True, "name": session.get("user_name"), "usuario": usuario})
+        except Error:
+            return jsonify({"logged_in": True, "name": session.get("user_name")})
     return jsonify({"logged_in": False})
 
+# ============================================================
+# API DE HUELLA DE CARBONO
+# ============================================================
+@app.route("/api/huella", methods=["POST"])
+def api_guardar_huella():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    total_huella = data.get("total")
+
+    if total_huella is None:
+        return jsonify({"ok": False, "message": "Falta el valor de la huella."}), 400
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute("UPDATE usuarios SET huella = %s WHERE id = %s", (total_huella, session["user_id"]))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+
+        return jsonify({"ok": True, "message": "Huella guardada correctamente", "huella": total_huella})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
 
 # ============================================================
-# API DE PROGRESO (NIVEL / EXPERIENCIA) Y RANKING GLOBAL
+# API DE PERFIL (CONSULTA Y EDICIÓN COMPLETA)
 # ============================================================
-
-@app.route("/api/progreso", methods=["GET"])
-def api_get_progreso():
-    """Devuelve el nivel y la experiencia del usuario logueado."""
+@app.route("/api/perfil", methods=["GET"])
+def api_get_perfil():
     if "user_id" not in session:
         return jsonify({"ok": False, "message": "No autenticado"}), 401
 
@@ -316,58 +322,133 @@ def api_get_progreso():
         conexion = get_connection()
         cursor = conexion.cursor(dictionary=True)
         cursor.execute(
-            "SELECT nivel, experiencia FROM usuarios WHERE id = %s",
+            "SELECT id, nombre, email, bio, ubicacion, avatar_url, banner_url, nivel, experiencia, huella, fecha_registro "
+            "FROM usuarios WHERE id = %s",
             (session["user_id"],)
         )
-        fila = cursor.fetchone()
-        cursor.close()
-        conexion.close()
+        u = cursor.fetchone()
 
-        if not fila:
+        if not u:
+            cursor.close()
+            conexion.close()
             return jsonify({"ok": False, "message": "Usuario no encontrado"}), 404
 
-        return jsonify({"ok": True, "nivel": fila["nivel"], "experiencia": fila["experiencia"]})
-    except Error as err:
-        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
-
-
-@app.route("/api/ranking", methods=["GET"])
-def api_ranking():
-    """Devuelve a todos los usuarios ordenados de menor a mayor nivel/XP."""
-    try:
-        conexion = get_connection()
-        cursor = conexion.cursor(dictionary=True)
         cursor.execute(
-            "SELECT nombre, nivel, experiencia FROM usuarios "
-            "ORDER BY nivel ASC, experiencia ASC"
+            "SELECT COUNT(*) AS total FROM misiones_completadas WHERE usuario_id = %s",
+            (session["user_id"],)
         )
-        filas = cursor.fetchall()
+        u["misiones_completadas"] = cursor.fetchone()["total"]
+        
+        if u["fecha_registro"]:
+            u["fecha_registro"] = u["fecha_registro"].strftime("%Y-%m-%d")
+
         cursor.close()
         conexion.close()
-        return jsonify({"ok": True, "ranking": filas})
+        return jsonify({"ok": True, "usuario": u})
     except Error as err:
         return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
 
+@app.route("/api/perfil/actualizar", methods=["POST"])
+def api_actualizar_perfil():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    nombre = (data.get("nombre") or "").strip()
+    ubicacion = (data.get("ubicacion") or "").strip()
+    bio = (data.get("bio") or "").strip()
+
+    if not nombre:
+        return jsonify({"ok": False, "message": "El nombre no puede estar vacío."}), 400
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute(
+            "UPDATE usuarios SET nombre = %s, ubicacion = %s, bio = %s WHERE id = %s",
+            (nombre, ubicacion, bio, session["user_id"])
+        )
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+
+        session["user_name"] = nombre
+        return jsonify({"ok": True})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/perfil/avatar", methods=["POST"])
+def api_subir_avatar():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    if 'avatar' not in request.files:
+        return jsonify({"ok": False, "message": "No se envió ningún archivo."}), 400
+
+    file = request.files['avatar']
+    if file.filename == '':
+        return jsonify({"ok": False, "message": "Archivo no seleccionado."}), 400
+
+    ext = os.path.splitext(file.filename)[1]
+    filename = secure_filename(f"avatar_user_{session['user_id']}{ext}")
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+
+    avatar_url = f"/uploads/{filename}"
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute("UPDATE usuarios SET avatar_url = %s WHERE id = %s", (avatar_url, session["user_id"]))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "avatar_url": avatar_url})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/perfil/banner", methods=["POST"])
+def api_subir_banner():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    if 'banner' not in request.files:
+        return jsonify({"ok": False, "message": "No se envió ningún archivo."}), 400
+
+    file = request.files['banner']
+    if file.filename == '':
+        return jsonify({"ok": False, "message": "Archivo no seleccionado."}), 400
+
+    ext = os.path.splitext(file.filename)[1]
+    filename = secure_filename(f"banner_user_{session['user_id']}{ext}")
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+
+    banner_url = f"/uploads/{filename}"
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute("UPDATE usuarios SET banner_url = %s WHERE id = %s", (banner_url, session["user_id"]))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "banner_url": banner_url})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
 
 # ============================================================
-# API DE MISIONES (anti-farmeo: todo se valida en el servidor)
+# API DE MISIONES Y RANKING
 # ============================================================
-
 @app.route("/api/misiones", methods=["GET"])
 def api_misiones():
-    """Devuelve el catálogo completo de misiones, marcando cuáles ya
-    completó el usuario logueado y si ya llegó al límite diario."""
     if "user_id" not in session:
         return jsonify({"ok": False, "message": "No autenticado"}), 401
 
     try:
         conexion = get_connection()
         cursor = conexion.cursor(dictionary=True)
-
-        cursor.execute(
-            "SELECT mision_id FROM misiones_completadas WHERE usuario_id = %s",
-            (session["user_id"],)
-        )
+        cursor.execute("SELECT mision_id FROM misiones_completadas WHERE usuario_id = %s", (session["user_id"],))
         completadas = {fila["mision_id"] for fila in cursor.fetchall()}
 
         cursor.execute(
@@ -376,7 +457,6 @@ def api_misiones():
             (session["user_id"],)
         )
         misiones_hoy = cursor.fetchone()["total"]
-
         cursor.close()
         conexion.close()
 
@@ -400,17 +480,8 @@ def api_misiones():
     except Error as err:
         return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
 
-
 @app.route("/api/completar_mision", methods=["POST"])
 def api_completar_mision():
-    """Marca una misión como completada, guarda la evidencia y suma el XP
-    que corresponde según el catálogo del servidor (nunca el que mande
-    el navegador). Acá se aplican las reglas anti-farmeo:
-      - la misión tiene que existir en el catálogo
-      - no se puede repetir una misión ya completada
-      - no se puede pasar el límite diario de misiones
-      - hay que escribir una evidencia de un largo mínimo
-    """
     if "user_id" not in session:
         return jsonify({"ok": False, "message": "No autenticado"}), 401
 
@@ -425,7 +496,7 @@ def api_completar_mision():
     if len(evidencia) < MIN_EVIDENCIA_CARACTERES:
         return jsonify({
             "ok": False,
-            "message": f"Contanos con al menos {MIN_EVIDENCIA_CARACTERES} caracteres qué hiciste para completarla."
+            "message": f"Escribí al menos {MIN_EVIDENCIA_CARACTERES} caracteres detallando tu evidencia."
         }), 400
 
     usuario_id = session["user_id"]
@@ -434,17 +505,12 @@ def api_completar_mision():
         conexion = get_connection()
         cursor = conexion.cursor(dictionary=True)
 
-        # ¿Ya la completó antes?
-        cursor.execute(
-            "SELECT id FROM misiones_completadas WHERE usuario_id = %s AND mision_id = %s",
-            (usuario_id, mision_id)
-        )
+        cursor.execute("SELECT id FROM misiones_completadas WHERE usuario_id = %s AND mision_id = %s", (usuario_id, mision_id))
         if cursor.fetchone():
             cursor.close()
             conexion.close()
             return jsonify({"ok": False, "message": "Ya completaste esta misión antes."}), 409
 
-        # ¿Ya llegó al límite diario?
         cursor.execute(
             "SELECT COUNT(*) AS total FROM misiones_completadas "
             "WHERE usuario_id = %s AND DATE(fecha_completada) = CURDATE()",
@@ -454,23 +520,16 @@ def api_completar_mision():
         if misiones_hoy >= MAX_MISIONES_POR_DIA:
             cursor.close()
             conexion.close()
-            return jsonify({
-                "ok": False,
-                "message": f"Ya completaste tus {MAX_MISIONES_POR_DIA} misiones de hoy. ¡Volvé mañana!"
-            }), 429
+            return jsonify({"ok": False, "message": f"Llegaste al límite diario ({MAX_MISIONES_POR_DIA}). ¡Volvé mañana!"}), 429
 
-        # Todo bien: se registra la misión completada.
         cursor.execute(
             "INSERT INTO misiones_completadas (usuario_id, mision_id, evidencia) VALUES (%s, %s, %s)",
             (usuario_id, mision_id, evidencia)
         )
 
-        # Se calcula el nuevo nivel/XP del lado del servidor.
         cursor.execute("SELECT nivel, experiencia FROM usuarios WHERE id = %s", (usuario_id,))
         actual = cursor.fetchone()
-        nuevo_nivel, nueva_exp, subio_nivel = calcular_progreso(
-            actual["nivel"], actual["experiencia"], mision["xp"]
-        )
+        nuevo_nivel, nueva_exp, subio_nivel = calcular_progreso(actual["nivel"], actual["experiencia"], mision["xp"])
 
         cursor.execute(
             "UPDATE usuarios SET nivel = %s, experiencia = %s WHERE id = %s",
@@ -486,12 +545,154 @@ def api_completar_mision():
             "nivel": nuevo_nivel,
             "experiencia": nueva_exp,
             "subio_nivel": subio_nivel,
-            "misiones_hoy": misiones_hoy + 1,
-            "max_diario": MAX_MISIONES_POR_DIA
+            "misiones_hoy": misiones_hoy + 1
         })
     except Error as err:
         return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
 
+@app.route("/api/ranking", methods=["GET"])
+def api_ranking():
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute("SELECT nombre, nivel, experiencia FROM usuarios ORDER BY nivel DESC, experiencia DESC")
+        filas = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "ranking": filas})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+# ============================================================
+# API DE AMIGOS
+# ============================================================
+@app.route("/api/amigos", methods=["GET"])
+def api_obtener_amigos():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor(dictionary=True)
+        query = """
+            SELECT u.id, u.nombre, u.nivel, u.experiencia, u.huella, u.avatar_url, u.ubicacion
+            FROM amigos a
+            JOIN usuarios u ON a.amigo_id = u.id
+            WHERE a.usuario_id = %s
+        """
+        cursor.execute(query, (session["user_id"],))
+        amigos = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "amigos": amigos})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/amigos/buscar", methods=["GET"])
+def api_buscar_usuarios():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify({"ok": True, "resultados": []})
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor(dictionary=True)
+        query = """
+            SELECT u.id, u.nombre, u.nivel, u.avatar_url,
+                   (SELECT COUNT(*) FROM amigos a WHERE a.usuario_id = %s AND a.amigo_id = u.id) AS es_amigo
+            FROM usuarios u
+            WHERE (u.nombre LIKE %s OR u.email LIKE %s) AND u.id != %s
+            LIMIT 10
+        """
+        search_term = f"%{q}%"
+        cursor.execute(query, (session["user_id"], search_term, search_term, session["user_id"]))
+        resultados = cursor.fetchall()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "resultados": resultados})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/amigos/agregar", methods=["POST"])
+def api_agregar_amigo():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    amigo_id = data.get("amigo_id")
+
+    if not amigo_id or amigo_id == session["user_id"]:
+        return jsonify({"ok": False, "message": "ID de usuario inválido."}), 400
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute("INSERT IGNORE INTO amigos (usuario_id, amigo_id) VALUES (%s, %s)", (session["user_id"], amigo_id))
+        cursor.execute("INSERT IGNORE INTO amigos (usuario_id, amigo_id) VALUES (%s, %s)", (amigo_id, session["user_id"]))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "message": "Amigo agregado correctamente."})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/amigos/eliminar", methods=["POST"])
+def api_eliminar_amigo():
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    amigo_id = data.get("amigo_id")
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor()
+        cursor.execute("DELETE FROM amigos WHERE (usuario_id = %s AND amigo_id = %s) OR (usuario_id = %s AND amigo_id = %s)",
+                       (session["user_id"], amigo_id, amigo_id, session["user_id"]))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "message": "Amigo eliminado."})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
+
+@app.route("/api/perfil/<int:user_id>", methods=["GET"])
+def api_ver_perfil_publico(user_id):
+    if "user_id" not in session:
+        return jsonify({"ok": False, "message": "No autenticado"}), 401
+
+    try:
+        conexion = get_connection()
+        cursor = conexion.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT id, nombre, bio, ubicacion, avatar_url, banner_url, nivel, experiencia, huella, fecha_registro "
+            "FROM usuarios WHERE id = %s",
+            (user_id,)
+        )
+        u = cursor.fetchone()
+
+        if not u:
+            cursor.close()
+            conexion.close()
+            return jsonify({"ok": False, "message": "Usuario no encontrado"}), 404
+
+        cursor.execute(
+            "SELECT COUNT(*) AS total FROM misiones_completadas WHERE usuario_id = %s",
+            (user_id,)
+        )
+        u["misiones_completadas"] = cursor.fetchone()["total"]
+
+        if u["fecha_registro"]:
+            u["fecha_registro"] = u["fecha_registro"].strftime("%Y-%m-%d")
+
+        cursor.close()
+        conexion.close()
+        return jsonify({"ok": True, "usuario": u})
+    except Error as err:
+        return jsonify({"ok": False, "message": f"Error de base de datos: {err}"}), 500
 
 if __name__ == "__main__":
     inicializar_base_datos()
