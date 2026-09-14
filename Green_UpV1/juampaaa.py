@@ -1,9 +1,10 @@
 import mysql.connector
 
 # ============================
-# CONEXIÓN A LA BASE DE DATOS
+# DATABASE CONNECTION
 # ============================
 def conectar():
+    """Establishes and returns a connection to the MySQL database."""
     return mysql.connector.connect(
         host="localhost",
         user="root",
@@ -12,9 +13,10 @@ def conectar():
     )
 
 # ============================
-# REGISTRAR USUARIO
+# USER REGISTRATION
 # ============================
 def registrar_usuario():
+    """Prompts the user for details and inserts a new record into the database."""
     print("\n--- REGISTRAR USUARIO ---")
     nombre = input("Nombre: ")
     apellido = input("Apellido: ")
@@ -35,9 +37,10 @@ def registrar_usuario():
     conexion.close()
 
 # ============================
-# CONSULTAR USUARIO POR NOMBRE
+# SEARCH USER BY NAME
 # ============================
 def consultar_usuario():
+    """Searches for users by name and prints their profile details if found."""
     print("\n--- CONSULTAR USUARIO ---")
     nombre = input("Nombre a buscar: ")
 
@@ -65,9 +68,10 @@ Género: {fila[5]}
     conexion.close()
 
 # ============================
-# INICIAR SESIÓN (nombre + apellido)
+# USER LOGIN (Name + Last Name)
 # ============================
 def iniciar_sesion():
+    """Authenticates a user by matching their first and last name in the database."""
     print("\n--- INICIAR SESIÓN ---")
     nombre = input("Nombre: ")
     apellido = input("Apellido: ")
@@ -88,9 +92,10 @@ def iniciar_sesion():
     conexion.close()
 
 # ============================
-# MODIFICAR APELLIDO
+# UPDATE LAST NAME
 # ============================
 def modificar_apellido():
+    """Updates a user's last name based on their unique ID."""
     print("\n--- MODIFICAR APELLIDO ---")
     id_usuario = input("ID del usuario: ")
     nuevo_apellido = input("Nuevo apellido: ")
@@ -108,9 +113,10 @@ def modificar_apellido():
     conexion.close()
 
 # ============================
-# CAMBIAR OCUPACIÓN
+# UPDATE OCCUPATION
 # ============================
 def modificar_ocupacion():
+    """Updates a user's occupation based on their unique ID."""
     print("\n--- CAMBIAR OCUPACIÓN ---")
     id_usuario = input("ID del usuario: ")
     nueva_ocupacion = input("Nueva ocupación: ")
@@ -128,9 +134,10 @@ def modificar_ocupacion():
     conexion.close()
 
 # ============================
-# ELIMINAR USUARIO
+# DELETE USER
 # ============================
 def eliminar_usuario():
+    """Deletes a user record from the database using their unique ID."""
     print("\n--- ELIMINAR USUARIO ---")
     id_usuario = input("ID del usuario a eliminar: ")
 
@@ -147,9 +154,10 @@ def eliminar_usuario():
     conexion.close()
 
 # ============================
-# MENÚ PRINCIPAL
+# MAIN MENU LOOP
 # ============================
 def menu():
+    """Displays the main CLI menu and handles user option selections."""
     while True:
         print("\n========= MENÚ PRINCIPAL =========")
         print("1. Registrar usuario")
@@ -181,7 +189,7 @@ def menu():
             print("\nOpción inválida, intente de nuevo.\n")
 
 # ============================
-# INICIO DEL PROGRAMA
+# PROGRAM ENTRY POINT
 # ============================
 if __name__ == "__main__":
     menu()
