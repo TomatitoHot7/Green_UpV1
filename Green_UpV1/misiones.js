@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM ELEMENTS SELECTION ---
     const contenedor = document.getElementById('misiones-container');
     if (!contenedor) return;
 
@@ -11,13 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const limiteDiarioAlert = document.getElementById('limite-diario-alert');
     const maxDiarioTexto = document.getElementById('max-diario-texto');
 
+    // --- STATE VARIABLES ---
     let misionSeleccionada = null;
     let limiteAlcanzado = false;
 
+    // Generates the category badge HTML markup
     function badgeCategoria(categoria) {
         return `<span class="badge bg-secondary mb-2">${categoria}</span>`;
     }
 
+    // Creates the HTML card structure for an individual mission
     function crearTarjeta(mision) {
         const col = document.createElement('div');
         col.className = 'col-md-6 col-lg-4 animate__animated animate__fadeInUp';
@@ -50,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return col;
     }
 
+    // Opens the evidence modal and initializes its fields for the selected mission
     function abrirModalEvidencia(mision) {
         misionSeleccionada = mision;
         evidenciaDescripcion.textContent = `${mision.descripcion} (${mision.xp} xp)`;
@@ -59,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         evidenciaModal.show();
     }
 
+    // Fetches missions data from the server and updates the UI accordingly
     async function cargarMisiones() {
         try {
             const res = await fetch('/api/misiones');
@@ -72,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             limiteAlcanzado = data.limite_alcanzado;
             maxDiarioTexto.textContent = data.max_diario;
 
+            // Handles the daily limit UI warning banner
             if (limiteAlcanzado) {
                 limiteDiarioAlert.textContent = `Ya completaste tus ${data.max_diario} misiones de hoy. ¡Volvé mañana por más!`;
                 limiteDiarioAlert.classList.remove('d-none');
@@ -79,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 limiteDiarioAlert.classList.add('d-none');
             }
 
+            // Renders all missions inside the container
             contenedor.innerHTML = '';
             data.misiones.forEach(mision => {
                 contenedor.appendChild(crearTarjeta(mision));
@@ -88,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Handles the confirmation and submission of mission evidence via POST request
     evidenciaConfirmar.addEventListener('click', async () => {
         if (!misionSeleccionada) return;
         const evidencia = evidenciaTexto.value.trim();
@@ -108,12 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Close modal upon success
             evidenciaModal.hide();
 
+            // Refresh user progress globally if the function exists
             if (window.refrescarProgreso) {
                 window.refrescarProgreso(data.nivel, data.experiencia, data.subio_nivel);
             }
 
+            // Reload missions to reflect updated status
             await cargarMisiones();
         } catch (e) {
             evidenciaError.textContent = 'No se pudo conectar con el servidor.';
@@ -123,5 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Initial call to load missions when the DOM content loads
     cargarMisiones();
 });
