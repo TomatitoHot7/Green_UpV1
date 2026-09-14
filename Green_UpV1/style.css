@@ -1,7 +1,7 @@
 /* ============================== */
-/* --- BASE Y TIPOGRAFÍA --- */
+/* --- BASE AND TYPOGRAPHY --- */
 /* ============================== */
-
+/* Sets the global layout, background color, typography, and default heading/paragraph styles for the application. */
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -40,7 +40,7 @@ p {
 /* ============================== */
 /* --- NAVBAR --- */
 /* ============================== */
-
+/* Styles the top sticky navigation bar, brand logo, and navigation links with hover effects. */
 .greenup-navbar {
     width: 100%;
     background-color: #28a745;
@@ -88,9 +88,9 @@ p {
 }
 
 /* ============================== */
-/* --- PERFIL DE USUARIO Y NIVEL --- */
+/* --- USER PROFILE AND LEVEL --- */
 /* ============================== */
-
+/* Controls the display of the user avatar in the navbar and user level badge aesthetics. */
 .user-profile-nav {
     display: flex;
     align-items: center;
@@ -120,9 +120,9 @@ p {
 }
 
 /* ============================== */
-/* --- PLANETA CURVO --- */
+/* --- CURVED PLANET --- */
 /* ============================== */
-
+/* Styles the animated planet container, image rotation on hover, and curved text overlays. */
 .planet-container {
     position: relative;
     width: 300px;
@@ -166,9 +166,9 @@ p {
 }
 
 /* ============================== */
-/* --- NOTICIAS Y MISIONES --- */
+/* --- NEWS AND MISSIONS --- */
 /* ============================== */
-
+/* Defines card layouts, hover effects, and typography for news articles and ecological missions. */
 .news-card {
     transition: transform 0.3s, box-shadow 0.3s;
     overflow: hidden;
@@ -199,9 +199,9 @@ p {
 }
 
 /* ============================== */
-/* --- BOTÓN CTA CALCULADORA (index) --- */
+/* --- CALCULATOR CTA BUTTON (index) --- */
 /* ============================== */
-
+/* Customizes the call-to-action button leading to the carbon footprint calculator. */
 .calc-cta-btn {
     border-radius: 30px;
     padding: 12px 30px;
@@ -209,9 +209,9 @@ p {
 }
 
 /* ============================== */
-/* --- MODAL DE AUTENTICACIÓN --- */
+/* --- AUTHENTICATION MODAL --- */
 /* ============================== */
-
+/* Styles modal containers, custom green buttons, and progress bar animation states. */
 .modal-content {
     border: 5px solid #28a745;
 }
@@ -242,9 +242,9 @@ p {
 #progressBar { transition: width 0.5s ease-in-out; }
 
 /* ============================== */
-/* --- CALCULADORA DE HUELLA --- */
+/* --- CARBON FOOTPRINT CALCULATOR --- */
 /* ============================== */
-
+/* Configures the carbon calculator layout, form questions, and dynamic high/medium/low footprint results. */
 .calculator-container {
     background-color: #ffffff;
     border: 1px solid #ddd;
@@ -287,9 +287,9 @@ p {
 #consejos-box ul { margin-bottom: 0; }
 
 /* ============================== */
-/* --- ECO: ASISTENTE DE HUELLA --- */
+/* --- ECO: FOOTPRINT ASSISTANT --- */
 /* ============================== */
-
+/* Manages the floating Eco assistant widget animations, badge notifications, and chat bubble dialogs. */
 .ecobot-widget {
     position: relative;
     margin-left: 15px;
@@ -374,7 +374,8 @@ p {
 
 .ecobot-bubble-visible { display: block; }
 
-/* ==================== ESTILOS SECCIÓN PERFIL ==================== */
+/* ==================== PROFILE SECTION STYLES ==================== */
+/* Styles the user profile card layout, banner images, avatar containers, and personal statistics boxes. */
 .profile-card {
     border-radius: 18px;
 }
