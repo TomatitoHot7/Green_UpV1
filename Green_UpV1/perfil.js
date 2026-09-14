@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Elementos DOM - Modos y Botones
+    // DOM Elements - Modes and Buttons
     const btnToggleEdit = document.getElementById('btn-toggle-edit');
     const btnCancelEdit = document.getElementById('btn-cancel-edit');
     const viewMode = document.getElementById('view-mode');
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileForm = document.getElementById('profile-form');
     const alertBox = document.getElementById('profile-alert');
 
-    // Campos de Lectura (Visualización)
+    // Read-Only Fields (Visualization)
     const displayNombre = document.getElementById('display-nombre');
     const displayEmail = document.getElementById('display-email');
     const displayBio = document.getElementById('display-bio');
@@ -19,22 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileAvatarImg = document.getElementById('profile-avatar-img');
     const bannerContainer = document.getElementById('banner-container');
 
-    // Campos de Edición (Inputs)
+    // Edit Fields (Inputs)
     const inputNombre = document.getElementById('input-nombre');
     const inputUbicacion = document.getElementById('input-ubicacion');
     const inputBio = document.getElementById('input-bio');
 
-    // Inputs de Archivos (Imágenes)
+    // File Inputs (Images)
     const avatarFileInput = document.getElementById('avatar-file-input');
     const bannerFileInput = document.getElementById('banner-file-input');
 
-    // Elementos de la Sección Amigos
+    // Friends Section Elements
     const amigosLista = document.getElementById('amigos-lista');
     const inputBuscarAmigo = document.getElementById('input-buscar-amigo');
     const btnEjecutarBusqueda = document.getElementById('btn-ejecutar-busqueda');
     const resultadosBusqueda = document.getElementById('resultados-busqueda');
 
-    // 1. Cargar los datos del perfil desde MySQL
+    // 1. Load profile data from MySQL
     async function cargarPerfil() {
         try {
             const res = await fetch('/api/perfil');
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 2. Alternar entre Modo Vista y Modo Edición
+    // 2. Toggle between View Mode and Edit Mode
     if (btnToggleEdit) {
         btnToggleEdit.addEventListener('click', () => {
             const estaEnEdicion = !editMode.classList.contains('d-none');
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnToggleEdit) btnToggleEdit.classList.replace('btn-success', 'btn-outline-success');
     }
 
-    // 3. Guardar cambios de texto (Nombre, Ubicación, Biografía)
+    // 3. Save text changes (Name, Location, Biography)
     if (profileForm) {
         profileForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Subir y cambiar el Banner de Portada
+    // 4. Upload and change the Cover Banner
     if (bannerFileInput) {
         bannerFileInput.addEventListener('change', async () => {
             const file = bannerFileInput.files[0];
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 5. Subir y cambiar el Avatar
+    // 5. Upload and change the Avatar
     if (avatarFileInput) {
         avatarFileInput.addEventListener('change', async () => {
             const file = avatarFileInput.files[0];
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // GESTIÓN DE AMIGOS
+    // FRIENDS MANAGEMENT
     // ============================================================
 
     async function cargarAmigos() {
@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alertBox.classList.remove('d-none');
     }
 
-    // Carga inicial
+    // Initial load
     cargarPerfil();
     cargarAmigos();
 });
