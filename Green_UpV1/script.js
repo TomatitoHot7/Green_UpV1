@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
 
     // ============================
-    // NIVEL, EXPERIENCIA Y AVATAR DESDE BASE DE DATOS
+    // LEVEL, EXPERIENCE, AND AVATAR FROM DATABASE
     // ============================
     let currentExp = 0;
     let currentLevel = 1;
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     } catch (e) {
-        // Se mantiene el valor por defecto en caso de desconexión
+        // Default values are kept in case of disconnection
     }
 
     const levelUpModalElement = document.getElementById('levelUpModal');
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateUI();
 
-    // Refrescar el progreso desde la base de datos tras completar misiones
+    // Refresh progress from database after completing missions
     window.refrescarProgreso = async function (nuevoNivel, nuevaExperiencia, subioNivel) {
         currentLevel = nuevoNivel;
         currentExp = nuevaExperiencia;
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ============================
-    // ECO - ASISTENTE DE HUELLA DIARIA
+    // ECO - DAILY CARBON FOOTPRINT ASSISTANT
     // ============================
 
     const ecobotAvatar = document.getElementById('ecobot-avatar');
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ============================
-    // CALCULADORA DE HUELLA DE CARBONO
+    // CARBON FOOTPRINT CALCULATOR
     // ============================
 
     const form = document.getElementById('carbon-footprint-form');
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify({ total: total })
                 });
             } catch (err) {
-                console.error("Error al guardar la huella en el servidor:", err);
+                console.error("Error saving carbon footprint to server:", err);
             }
 
             listaConsejos.innerHTML = '';
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let streak = parseInt(localStorage.getItem('streak')) || 0;
 
             if (lastCheck === hoy) {
-                // Sin cambios si es el mismo día
+                // No changes if it is the same day
             } else if (lastCheck === ayer) {
                 streak += 1;
             } else {
