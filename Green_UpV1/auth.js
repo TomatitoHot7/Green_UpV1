@@ -1,9 +1,15 @@
 // ============================================================
 // GREENUP - auth.js
-// Manejo de autenticación a través de la base de datos MySQL y Flask.
-// Se mantiene la estructura original sin dependencias de localStorage.
+// Handles authentication through MySQL database and Flask backend.
+// Structure preserved without localStorage dependencies.
 // ============================================================
 
+/**
+ * Generic helper function to make POST requests to the API.
+ * @param {string} url - The endpoint URL to send the request to.
+ * @param {Object} body - The payload data to be sent as JSON.
+ * @returns {Promise<{status: number, data: Object}>} The HTTP status and response JSON data.
+ */
 async function apiPost(url, body) {
     const res = await fetch(url, {
         method: 'POST',
@@ -11,10 +17,14 @@ async function apiPost(url, body) {
         body: JSON.stringify(body || {})
     });
     let data = {};
-    try { data = await res.json(); } catch (e) { /* respuesta vacía */ }
+    try { data = await res.json(); } catch (e) { /* empty response fallback */ }
     return { status: res.status, data };
 }
 
+/**
+ * Retrieves the current session status from the backend.
+ * @returns {Promise<Object>} The session object (contains logged_in status and user info).
+ */
 async function getSession() {
     try {
         const res = await fetch('/api/session');
@@ -24,6 +34,11 @@ async function getSession() {
     }
 }
 
+/**
+ * Protects routes by checking if the user is authenticated. 
+ * Redirects to the login page with a return URL if not logged in.
+ * @returns {Promise<Object|null>} The session object if authenticated, otherwise null.
+ */
 async function requireAuth() {
     const sesion = await getSession();
     if (!sesion.logged_in) {
@@ -34,11 +49,18 @@ async function requireAuth() {
     return sesion;
 }
 
+/**
+ * Redirects the user to the home page if they are already logged in (prevents visiting login/register pages unnecessarily).
+ */
 async function redirectIfLoggedIn() {
     const sesion = await getSession();
     if (sesion.logged_in) window.location.href = 'index.html';
 }
 
+/**
+ * Switches between authentication tabs (e.g., Login vs Register views).
+ * @param {string} tab - The identifier of the tab to activate ('login' or 'register').
+ */
 function switchTab(tab) {
     document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
@@ -48,6 +70,12 @@ function switchTab(tab) {
     clearMessage('register-message');
 }
 
+/**
+ * Displays a feedback message inside an element.
+ * @param {string} id - The DOM element ID where the message will be shown.
+ * @param {string} text - The message text content.
+ * @param {string} type - The message type class ('success', 'error', etc.).
+ */
 function showMessage(id, text, type) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -55,6 +83,10 @@ function showMessage(id, text, type) {
     el.className = 'auth-message ' + type;
 }
 
+/**
+ * Clears any feedback message from a specific element.
+ * @param {string} id - The DOM element ID to clear.
+ */
 function clearMessage(id) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -62,12 +94,21 @@ function clearMessage(id) {
     el.textContent = '';
 }
 
+/**
+ * Toggles the visibility of a password input field (shows/hides text).
+ * @param {string} inputId - The ID of the password input field.
+ * @param {HTMLElement} btn - The toggle button element.
+ */
 function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
     else { input.type = 'password'; btn.textContent = '👁️'; }
 }
 
+/**
+ * Validates password requirements in real-time during registration.
+ * @param {string} value - The current password string value.
+ */
 function checkPasswordReqs(value) {
     const reqLength = document.getElementById('req-length');
     const reqLetter = document.getElementById('req-letter');
@@ -75,12 +116,20 @@ function checkPasswordReqs(value) {
     setReq(reqLetter, /[a-zA-Z]/.test(value));
 }
 
+/**
+ * Updates the visual indicator status for a specific password requirement.
+ * @param {HTMLElement} el - The requirement DOM element.
+ * @param {boolean} met - Whether the requirement has been met.
+ */
 function setReq(el, met) {
     if (!el) return;
     el.classList.toggle('met', met);
     el.querySelector('.req-icon').textContent = met ? '✔' : '○';
 }
 
+/**
+ * Handles the user login process by sending credentials to the API and managing redirection.
+ */
 async function handleLogin() {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
@@ -106,6 +155,9 @@ async function handleLogin() {
     }, 1000);
 }
 
+/**
+ * Validates registration inputs, checks terms agreement, and submits new user data to the API.
+ */
 async function handleRegister() {
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
@@ -150,11 +202,17 @@ async function handleRegister() {
     setTimeout(() => { window.location.href = 'index.html'; }, 1200);
 }
 
+/**
+ * Logs the user out by requesting the backend logout endpoint and redirecting to the login page.
+ */
 async function logout() {
     await apiPost('/api/logout');
     window.location.href = 'login.html';
 }
 
+/**
+ * Dynamically initializes the navigation bar elements based on the user's authentication session state.
+ */
 async function initUserNavbar() {
     const sesion = await getSession();
     const userProfileNav = document.querySelector('.user-profile-nav');
@@ -199,25 +257,34 @@ async function initUserNavbar() {
     }
 }
 
+/**
+ * Main entry point executed when the DOM content is fully loaded.
+ * Handles page protection, UI setup, and keyboard event listeners for forms.
+ */
 document.addEventListener('DOMContentLoaded', async () => {
     const paginaActual = window.location.pathname.split('/').pop().toLowerCase();
     const paginasProtegidas = ['misiones.html', 'ranking.html'];
 
+    // Enforce authentication on protected pages
     if (paginasProtegidas.includes(paginaActual)) {
         const sesion = await requireAuth();
         if (!sesion) return;
     }
 
+    // Redirect logged-in users away from the login page, otherwise setup the navbar
     if (document.getElementById('panel-login')) {
         redirectIfLoggedIn();
     } else {
         initUserNavbar();
     }
 
+    // Add keyboard listeners (Enter key) for login inputs
     ['login-email', 'login-password'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
     });
+    
+    // Add keyboard listeners (Enter key) for register inputs
     ['reg-name', 'reg-email', 'reg-password', 'reg-password2'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') handleRegister(); });
