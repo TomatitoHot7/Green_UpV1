@@ -1,20 +1,22 @@
 import mysql.connector
 
-# --- CONFIGURACIÓN DE LA BASE DE DATOS Y CONEXIÓN ---
+# ============================
+# DATABASE CONFIGURATION & CONNECTION
+# ============================
 
-# **IMPORTANTE:** Reemplaza 'yourusername' y 'yourpassword' con tus credenciales de MySQL.
+# IMPORTANT: Replace 'yourusername' and 'yourpassword' with your MySQL credentials.
 DB_HOST = "localhost"
 DB_USER = "yourusername"
 DB_PASSWORD = "yourpassword"
-DB_NAME = "accion_clima_db" # Nombre de la base de datos
+DB_NAME = "accion_clima_db" # Database name
 
 def conectar():
     """
-    Establece y devuelve una conexión a la base de datos.
-    Si la DB no existe, intenta crearla.
+    Establishes and returns a connection to the database.
+    If the database does not exist, it attempts to create it.
     """
     try:
-        # Intenta conectar a la base de datos específica
+        # Try to connect to the specific database
         conn = mysql.connector.connect(
             host=DB_HOST,
             user=DB_USER,
@@ -24,24 +26,24 @@ def conectar():
         return conn
     except mysql.connector.Error as err:
         if err.errno == mysql.connector.errorcode.ER_BAD_DB_ERROR:
-            # Si la base de datos no existe, la creamos
-            print(f"La base de datos '{DB_NAME}' no existe. Creándola...")
-            # Llama a crear_base_de_datos, que crea las tablas y devuelve una conexión válida.
+            # If the database does not exist, we create it
+            print(f"Database '{DB_NAME}' does not exist. Creating it...")
+            # Calls crear_base_de_datos, which creates tables and returns a valid connection.
             return crear_base_de_datos()
         elif err.errno == mysql.connector.errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Error de Conexión: Acceso denegado. Revisa tu Usuario y Contraseña de MySQL.")
+            print("Connection Error: Access denied. Check your MySQL Username and Password.")
             return None
         else:
-            print(f"Error de conexión a la base de datos: {err}")
+            print(f"Database connection error: {err}")
             return None
 
 def crear_base_de_datos():
     """
-    Crea la base de datos y las tablas iniciales si no existen.
-    Devuelve una conexión válida a la DB o None si falla.
+    Creates the database and initial tables if they do not exist.
+    Returns a valid DB connection or None if it fails.
     """
     try:
-        # Conexión sin especificar la base de datos (para poder crearla)
+        # Connection without specifying the database (so we can create it)
         mydb = mysql.connector.connect(
             host=DB_HOST,
             user=DB_USER,
@@ -49,14 +51,14 @@ def crear_base_de_datos():
         )
         mycursor = mydb.cursor()
 
-        # 1. Crear la base de datos
+        # 1. Create the database
         mycursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME}")
-        print(f"Base de datos '{DB_NAME}' creada o ya existente.")
+        print(f"Database '{DB_NAME}' created or already exists.")
         
-        # 2. Seleccionar la base de datos recién creada/existente para crear las tablas
+        # 2. Select the newly created/existing database to create tables
         mydb.database = DB_NAME
         
-        # 3. Crear la tabla de usuarios
+        # 3. Create the users table
         sql_usuarios = """
         CREATE TABLE IF NOT EXISTS usuarios (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -67,9 +69,9 @@ def crear_base_de_datos():
         )
         """
         mycursor.execute(sql_usuarios)
-        print("Tabla 'usuarios' creada o ya existente.")
+        print("Table 'usuarios' created or already exists.")
 
-        # 4. Crear una tabla para el contenido de la página de inicio
+        # 4. Create a table for home page content
         sql_contenido_home = """
         CREATE TABLE IF NOT EXISTS contenido_home (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -84,22 +86,24 @@ def crear_base_de_datos():
         )
         """
         mycursor.execute(sql_contenido_home)
-        print("Tabla 'contenido_home' creada o ya existente.")
+        print("Table 'contenido_home' created or already exists.")
 
         mydb.commit()
         mycursor.close()
         
-        # Devolvemos la conexión abierta, ahora con la DB seleccionada
+        # Return the open connection, now with the DB selected
         return mydb 
         
     except mysql.connector.Error as err:
-        print(f"Error al crear base de datos/tablas: {err}")
+        print(f"Error creating database/tables: {err}")
         return None
 
-# --- FUNCIONES DE GESTIÓN DE USUARIOS (REGISTRO/LOGIN) ---
+# ============================
+# USER MANAGEMENT FUNCTIONS (REGISTRATION / LOGIN)
+# ============================
 
 def registrar_usuario():
-    """Permite a un nuevo usuario registrarse en la página."""
+    """Allows a new user to register on the platform."""
     print("\n--- REGISTRO DE USUARIO ---")
     nombre = input("Nombre completo: ")
     email = input("Email (será tu usuario): ")
@@ -110,7 +114,7 @@ def registrar_usuario():
 
     cursor = conexion.cursor()
     
-    # 1. Prevenir duplicados de email
+    # 1. Prevent duplicate emails
     query_check = "SELECT email FROM usuarios WHERE email = %s"
     cursor.execute(query_check, (email,))
     if cursor.fetchone():
@@ -120,7 +124,7 @@ def registrar_usuario():
         return
 
     try:
-        # INSERT: Inserta el nuevo usuario en la tabla 'usuarios'
+        # INSERT: Inserts the new user into the 'usuarios' table
         sql_insert = "INSERT INTO usuarios (nombre, email, password) VALUES (%s, %s, %s)"
         val = (nombre, email, password)
         cursor.execute(sql_insert, val)
@@ -134,7 +138,7 @@ def registrar_usuario():
         conexion.close()
 
 def iniciar_sesion():
-    """Verifica las credenciales del usuario para iniciar sesión."""
+    """Verifies user credentials to log in."""
     print("\n--- INICIO DE SESIÓN ---")
     email = input("Email: ")
     password = input("Contraseña: ")
@@ -144,7 +148,7 @@ def iniciar_sesion():
 
     cursor = conexion.cursor()
     
-    # SELECT: Busca el usuario por email y contraseña
+    # SELECT: Search for the user by email and password
     query = "SELECT id, nombre FROM usuarios WHERE email = %s AND password = %s"
     cursor.execute(query, (email, password)) 
     resultado = cursor.fetchone()
@@ -159,7 +163,7 @@ def iniciar_sesion():
     conexion.close()
 
 def consultar_usuario():
-    """Consulta y muestra los datos de un usuario por su Email."""
+    """Queries and displays user details by their Email."""
     print("\n--- CONSULTAR USUARIO ---")
     email = input("Email del usuario a consultar: ")
     
@@ -167,7 +171,7 @@ def consultar_usuario():
     if not conexion: return
     cursor = conexion.cursor()
 
-    # SELECT WHERE: Obtiene todos los campos del usuario, excepto la contraseña (por seguridad)
+    # SELECT WHERE: Gets all user fields except the password (for security)
     query = "SELECT id, nombre, email, fecha_registro FROM usuarios WHERE email = %s"
     cursor.execute(query, (email,))
     resultado = cursor.fetchone()
@@ -186,7 +190,7 @@ def consultar_usuario():
     conexion.close()
 
 def modificar_usuario():
-    """Permite modificar el nombre de un usuario por su Email."""
+    """Allows modifying a user's name based on their Email."""
     print("\n--- MODIFICAR NOMBRE DE USUARIO ---")
     email = input("Email del usuario a modificar: ")
     nuevo_nombre = input("Nuevo nombre completo: ")
@@ -196,7 +200,7 @@ def modificar_usuario():
     cursor = conexion.cursor()
 
     try:
-        # UPDATE: Actualiza el campo 'nombre' para el usuario con el 'email' dado
+        # UPDATE: Updates the 'nombre' field for the user with the given 'email'
         sql_update = "UPDATE usuarios SET nombre = %s WHERE email = %s"
         val = (nuevo_nombre, email)
         cursor.execute(sql_update, val)
@@ -215,7 +219,7 @@ def modificar_usuario():
         conexion.close()
 
 def eliminar_usuario():
-    """Elimina a un usuario de la base de datos por su Email."""
+    """Deletes a user from the database by their Email."""
     print("\n--- ELIMINAR USUARIO ---")
     email = input("Email del usuario a ELIMINAR: ")
     confirmacion = input("¿Está seguro de que desea eliminar este usuario? (Sí/No): ").lower()
@@ -226,11 +230,10 @@ def eliminar_usuario():
 
     conexion = conectar()
     if not conexion: return
-    # CORRECTO: Crea el cursor
     cursor = conexion.cursor() 
 
     try:
-        # DELETE: Elimina la fila de la tabla 'usuarios' donde el 'email' coincide
+        # DELETE: Removes the row from the 'usuarios' table where 'email' matches
         sql_delete = "DELETE FROM usuarios WHERE email = %s"
         cursor.execute(sql_delete, (email,))
         
@@ -247,10 +250,12 @@ def eliminar_usuario():
         cursor.close()
         conexion.close()
 
-# --- FUNCIONES DE GESTIÓN DEL CONTENIDO DE LA PÁGINA DE INICIO ---
+# ============================
+# HOME PAGE CONTENT MANAGEMENT FUNCTIONS
+# ============================
 
 def insertar_contenido_home():
-    """Agrega una nueva noticia o proyecto al contenido de la página de inicio."""
+    """Adds a new news item or project to the home page content."""
     print("\n--- INSERTAR CONTENIDO HOME ---")
     print("Tipo de contenido: 1. Noticia | 2. Proyecto")
     tipo_opcion = input("Seleccione el tipo (1 o 2): ")
@@ -272,13 +277,13 @@ def insertar_contenido_home():
     cursor = conexion.cursor()
 
     try:
-        # 1. Verificar si el autor_id es un usuario existente
+        # 1. Verify if autor_id is an existing user
         cursor.execute("SELECT id FROM usuarios WHERE id = %s", (autor_id,))
         if not cursor.fetchone():
             print(f"ERROR: No existe ningún usuario con ID {autor_id}. Cancelando inserción.")
             return
             
-        # 2. INSERT: Inserta el nuevo contenido
+        # 2. INSERT: Inserts the new content
         sql_insert = "INSERT INTO contenido_home (tipo_contenido, titulo, resumen, autor_id, fecha_publicacion) VALUES (%s, %s, %s, %s, CURDATE())"
         val = (tipo, titulo, resumen, autor_id)
         cursor.execute(sql_insert, val)
@@ -292,14 +297,14 @@ def insertar_contenido_home():
         conexion.close()
 
 def ver_contenido_home():
-    """Muestra todo el contenido (noticias y proyectos) de la página de inicio."""
+    """Displays all content (news and projects) from the home page."""
     print("\n--- CONTENIDO ACTUAL DEL HOME ---")
     
     conexion = conectar()
     if not conexion: return
     cursor = conexion.cursor()
 
-    # SELECT con JOIN: Obtiene el contenido junto con el nombre del autor
+    # SELECT with JOIN: Gets the content along with the author's name
     query = """
     SELECT
         ch.id, ch.tipo_contenido, ch.titulo, ch.resumen, ch.fecha_publicacion, u.nombre
@@ -316,11 +321,11 @@ def ver_contenido_home():
     if resultados:
         print("\n-----------------------------------------------------------")
         for x in resultados:
-            # Maneja el caso de que autor_id sea NULL
+            # Handles the case where autor_id is NULL
             autor = x[5] if x[5] else "Desconocido (Autor eliminado)" 
             print(f"ID: {x[0]} | Tipo: {x[1].upper()}")
             print(f"Título: {x[2]}")
-            # Mostrar solo los primeros 100 caracteres del resumen para mejor visualización
+            # Display only the first 100 characters of the summary for better readability
             print(f"Resumen: {x[3][:100]}...") 
             print(f"Publicado: {x[4]} por {autor}")
             print("-----------------------------------------------------------")
@@ -330,12 +335,14 @@ def ver_contenido_home():
     cursor.close()
     conexion.close()
 
-# --- MENÚ PRINCIPAL ---
+# ============================
+# MAIN MENU
+# ============================
 
 def menu():
-    """Función principal que muestra el menú de opciones."""
+    """Main function that displays the option menu."""
     print("Iniciando la aplicación...")
-    # Intenta obtener una conexión inicial (esto creará la DB y tablas si es necesario)
+    # Attempt an initial connection (this will create the DB and tables if necessary)
     conn_inicial = conectar()
     if conn_inicial:
         conn_inicial.close()
