@@ -1,7 +1,6 @@
 /* ============================== */
-/* --- BASE Y TIPOGRAFÍA --- */
+/* --- BASE AND TYPOGRAPHY --- */
 /* ============================== */
-
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -40,7 +39,6 @@ p {
 /* ============================== */
 /* --- NAVBAR --- */
 /* ============================== */
-
 .greenup-navbar {
     width: 100%;
     background-color: #28a745;
@@ -88,9 +86,8 @@ p {
 }
 
 /* ============================== */
-/* --- PERFIL DE USUARIO Y NIVEL --- */
+/* --- USER PROFILE AND LEVEL --- */
 /* ============================== */
-
 .user-profile-nav {
     display: flex;
     align-items: center;
@@ -120,9 +117,8 @@ p {
 }
 
 /* ============================== */
-/* --- PLANETA CURVO --- */
+/* --- CURVED PLANET --- */
 /* ============================== */
-
 .planet-container {
     position: relative;
     width: 300px;
@@ -166,9 +162,8 @@ p {
 }
 
 /* ============================== */
-/* --- NOTICIAS Y MISIONES --- */
+/* --- NEWS AND MISSIONS --- */
 /* ============================== */
-
 .news-card {
     transition: transform 0.3s, box-shadow 0.3s;
     overflow: hidden;
@@ -184,24 +179,9 @@ p {
     object-fit: cover;
 }
 
-.mission-card {
-    border-left: 5px solid #1e7e34;
-    transition: background-color 0.3s;
-}
-
-.mission-card:hover {
-    background-color: #e9f7ef;
-}
-
-.mission-exp {
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
 /* ============================== */
-/* --- BOTÓN CTA CALCULADORA (index) --- */
+/* --- CALCULATOR CTA BUTTON --- */
 /* ============================== */
-
 .calc-cta-btn {
     border-radius: 30px;
     padding: 12px 30px;
@@ -209,9 +189,8 @@ p {
 }
 
 /* ============================== */
-/* --- MODAL DE AUTENTICACIÓN --- */
+/* --- AUTHENTICATION MODAL --- */
 /* ============================== */
-
 .modal-content {
     border: 5px solid #28a745;
 }
@@ -226,82 +205,22 @@ p {
     border-color: #1e7e34;
 }
 
-.hide-input { display: none; }
-
-.modal-content.bg-success {
-    background-color: #10c23a !important;
-    border-radius: 15px;
-}
-
-.modal-header, .modal-footer {
-    border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.btn-close-white { filter: invert(1); }
-
-#progressBar { transition: width 0.5s ease-in-out; }
-
 /* ============================== */
-/* --- CALCULADORA DE HUELLA --- */
+/* --- ECOBOT INFERIOR (MASCOT) --- */
 /* ============================== */
-
-.calculator-container {
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    max-width: 650px;
-    margin: 40px auto;
-}
-
-.pregunta-titulo {
-    font-weight: bold;
-    color: #1e7e34;
-    margin-bottom: 10px;
-}
-
-.resultado-emoji {
-    font-size: 3rem;
-    margin: 5px 0;
-}
-
-#resultado.huella-alta {
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-}
-
-#resultado.huella-media {
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
-}
-
-#resultado.huella-baja {
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
-}
-
-#consejos-box {
-    background-color: #e9f7ef;
-    border: 1px solid #c3e6cb;
-}
-
-#consejos-box ul { margin-bottom: 0; }
-
-/* ============================== */
-/* --- ECO: ASISTENTE DE HUELLA --- */
-/* ============================== */
-
-.ecobot-widget {
-    position: relative;
-    margin-left: 15px;
+.ecobot-widget-inferior {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 1050;
 }
 
 .ecobot-avatar {
-    width: 42px;
-    height: 42px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background-color: #ffffff;
-    border: 2px solid #ffc107;
-    font-size: 1.3rem;
+    border: 3px solid #28a745;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -309,23 +228,21 @@ p {
     position: relative;
     transition: transform 0.3s;
     animation: ecobot-flotar 3s ease-in-out infinite;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.ecobot-img-mascot {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    border-radius: 50%;
 }
 
 .ecobot-avatar:hover { transform: scale(1.15); }
 
-.ecobot-avatar.ecobot-alerta {
-    border-color: #dc3545;
-    animation: ecobot-flotar 3s ease-in-out infinite, ecobot-shake 1.2s ease-in-out infinite alternate;
-}
-
 @keyframes ecobot-flotar {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-}
-
-@keyframes ecobot-shake {
-    from { box-shadow: 0 0 0 0 rgba(220,53,69,0.5); }
-    to { box-shadow: 0 0 0 8px rgba(220,53,69,0); }
+    50% { transform: translateY(-6px); }
 }
 
 .ecobot-badge {
@@ -347,105 +264,30 @@ p {
 
 .ecobot-bubble {
     position: absolute;
-    top: 52px;
+    bottom: 75px;
     right: 0;
-    width: 220px;
+    width: 250px;
     background-color: #ffffff;
     color: #1e7e34;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 500;
     padding: 12px 14px;
     border-radius: 14px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     display: none;
     cursor: pointer;
-    z-index: 1040;
+    z-index: 1060;
+    border: 2px solid #28a745;
 }
 
-.ecobot-bubble::before {
+.ecobot-bubble::after {
     content: '';
     position: absolute;
-    top: -8px;
-    right: 16px;
-    border-width: 0 8px 8px 8px;
+    bottom: -8px;
+    right: 20px;
+    border-width: 8px 8px 0 8px;
     border-style: solid;
-    border-color: transparent transparent #ffffff transparent;
+    border-color: #28a745 transparent transparent transparent;
 }
 
 .ecobot-bubble-visible { display: block; }
-
-/* ==================== ESTILOS SECCIÓN PERFIL ==================== */
-.profile-card {
-    border-radius: 18px;
-}
-
-.profile-banner-container {
-    height: 220px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-    background-color: #2e7d32;
-    transition: background-image 0.4s ease-in-out;
-}
-
-.banner-overlay {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4));
-}
-
-.btn-change-banner {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    z-index: 10;
-    font-weight: 500;
-    border-radius: 20px;
-    padding: 6px 14px;
-}
-
-.profile-header-wrapper {
-    margin-top: -25px;
-    z-index: 5;
-    position: relative;
-}
-
-.profile-avatar-lg {
-    width: 130px;
-    height: 130px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #ffffff;
-    background-color: #ffffff;
-}
-
-.btn-change-avatar {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-icon-pencil {
-    width: 38px;
-    height: 38px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.btn-icon-pencil:hover {
-    transform: scale(1.1);
-}
-
-.stat-box {
-    min-width: 110px;
-    border-left: 3px solid #198754;
-}
