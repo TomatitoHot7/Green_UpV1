@@ -294,6 +294,88 @@ document.addEventListener('DOMContentLoaded', async () => {
             btnConsejos.addEventListener('click', () => {
                 consejosBox.style.display = consejosBox.style.display === 'none' ? 'block' : 'none';
             });
+// ============================================================
+// GREENUP - script.js (Modificado con EcoBot Inferior y Frases)
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    initEcoBotMascot();
+});
+
+/**
+ * Inicializa el comportamiento de la mascota EcoBot en la parte inferior.
+ */
+function initEcoBotMascot() {
+    const avatarBtn = document.getElementById('ecobot-avatar');
+    const bubble = document.getElementById('ecobot-bubble');
+
+    if (!avatarBtn || !bubble) return;
+
+    // 15 Frases de la mascota (incluyendo rachas y huella de carbono)
+    const frasesEcoBot = [
+        "¡Hola! Recordá mantener tu racha de días activos para cuidar el planeta 🌿.",
+        "¿Ya calculaste tu huella de carbono hoy? ¡Hacelo desde la sección de misiones o calculadora!",
+        "Cada pequeña acción cuenta para reducir las emisiones de CO₂ 🌍.",
+        "¡Qué buena racha llevás! No la rompas y completá tu misión diaria.",
+        "Reciclar, reducir y reutilizar son las claves para bajar tu impacto ambiental ♻️.",
+        "Monitorear tu huella de carbono te ayuda a vivir de forma más sustentable.",
+        "¡No te olvides de revisar las noticias ambientales del día!",
+        "Tu planeta virtual depende de tus hábitos diarios. ¡Vamos por más nivel! 🌱",
+        "¿Sabías que apagar los dispositivos en modo 'standby' ahorra mucha energía?",
+        "Mantener tu racha activa demuestra tu compromiso real con el medio ambiente 💚.",
+        "El transporte sustentable es una excelente forma de disminuir tu huella.",
+        "¡Hola de nuevo! Recordá calcular tu huella de carbono periódicamente para ver tus avances.",
+        "Cuidar el agua es cuidar el futuro de nuestro hogar.",
+        "¡Excelente trabajo en la plataforma! Seguí sumando puntos verdes.",
+        "Una racha constante de hábitos ecológicos hace la gran diferencia a largo plazo 🌎."
+    ];
+
+    function mostrarFraseAleatoria() {
+        // Obtener racha simulada (puedes adaptarla a tu base de datos o localStorage)
+        const rachaDias = localStorage.getItem('greenup_racha') || 5; 
+        
+        // Seleccionar frase aleatoria
+        let fraseAleatoria = frasesEcoBot[Math.floor(Math.random() * frasesEcoBot.length)];
+        
+        // Personalizar si habla de racha
+        if (fraseAleatoria.includes("racha")) {
+            fraseAleatoria = `🔥 Tenés una racha de ${rachaDias} días. ¡No la pierdas y calculá tu huella de carbono!`;
+        }
+
+        bubble.textContent = fraseAleatoria;
+        bubble.classList.add('ecobot-bubble-visible');
+
+        // Ocultar la burbuja automáticamente después de 7 segundos
+        setTimeout(() => {
+            bubble.classList.remove('ecobot-bubble-visible');
+        }, 7000);
+    }
+
+    // Mostrar frase al hacer clic en el avatar de la mascota
+    avatarBtn.addEventListener('click', () => {
+        if (bubble.classList.contains('ecobot-bubble-visible')) {
+            bubble.classList.remove('ecobot-bubble-visible');
+        } else {
+            mostrarFraseAleatoria();
+        }
+    });
+
+    // Mostrar una frase automáticamente cada 35 segundos
+    setInterval(mostrarFraseAleatoria, 35000);
+}
+
+/**
+ * Función existente para modificar el texto curvo del planeta
+ */
+function modificarTextoCurvo() {
+    const textoCurvo = document.getElementById('curved-text');
+    if (textoCurvo) {
+        const nuevoTexto = prompt("Ingresá el nuevo mensaje para tu planeta:", textoCurvo.textContent);
+        if (nuevoTexto && nuevoTexto.trim() !== "") {
+            textoCurvo.textContent = nuevoTexto.toUpperCase();
+        }
+    }
+}
         }
     }
 });
