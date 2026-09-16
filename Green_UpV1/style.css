@@ -291,3 +291,34 @@ p {
 }
 
 .ecobot-bubble-visible { display: block; }
+
+.profile-banner-container {
+  height: 180px; 
+  background-size: cover; 
+  background-position: center; 
+  position: relative; 
+}
+.profile-avatar-lg {
+  width: 120px !important;    /* Ajusta el ancho al tamaño deseado */
+  height: 120px !important;   /* Mantiene la proporción cuadrada */
+  border-radius: 50% !important; /* Lo convierte en círculo */
+  object-fit: cover;         /* Evita que la imagen se deforme */
+}
+.fullscreen-easter-egg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.fullscreen-easter-egg img{
+  width: 100vw;
+  height: 100vh;
+  object-fit: 100% 100%; /* Estira la imagen exactamente a la resolución del monitor/pantalla */
+}

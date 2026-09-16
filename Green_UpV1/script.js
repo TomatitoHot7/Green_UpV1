@@ -379,3 +379,48 @@ function modificarTextoCurvo() {
         }
     }
 });
+
+ // Arreglo de imágenes/GIFs para el Easter Egg
+const easterEggImages = [
+    'imagenes/1000356779.jpg',
+    'imagenes/1000356776.jpg',
+    'imagenes/1000356781.jpg',
+    'imagenes/1000356778.jpg',
+    'imagenes/1000356770.jpg',
+    'imagenes/1000356775.jpg',
+    'imagenes/1000356774.jpg',
+    'imagenes/1000356771.jpg',
+    'imagenes/1000356772.jpg',
+    'imagenes/unnamed (1).gif',
+     'imagenes/unnamed (1).gif',
+    'imagenes/unnamed.gif',
+    'imagenes/OGC.gif',
+];
+
+// Función para desplegar la imagen en pantalla completa por 3 segundos
+function desplegarEasterEggAutomatico() {
+  if (document.querySelector('.fullscreen-easter-egg')) return;
+
+  const imgAzar = easterEggImages[Math.floor(Math.random() * easterEggImages.length)];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'fullscreen-easter-egg';
+
+  const img = document.createElement('img');
+  img.src = imgAzar;
+
+  overlay.appendChild(img);
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    overlay.remove();
+  }, 3000);
+}
+
+// Evaluación aleatoria cada 1 segundo (Probabilidad: 1 en 1.000.000)
+setInterval(() => {
+  const chance = Math.floor(Math.random() * 1000000);
+  if (chance === 0) {
+    desplegarEasterEggAutomatico();
+  }
+}, 1000);
